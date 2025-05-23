@@ -3,6 +3,8 @@ import { Name, NamedAPIResource, VerboseEffect } from "./Common";
 /**
  * Abilities provide passive effects for Pokémon in battle or in the overworld.
  * Each Pokémon has between one and three abilities.
+ *
+ * Endpoint: https://pokeapi.co/api/v2/ability/{id or name}/
  */
 export interface Ability {
    /** The identifier for this ability resource */
@@ -35,6 +37,8 @@ export interface Ability {
 
 /**
  * Effect changes for abilities in different version groups
+ *
+ * Nested in: https://pokeapi.co/api/v2/ability/{id or name}/
  */
 export interface AbilityEffectChange {
    /** The version group in which the effect change occurred */
@@ -46,6 +50,8 @@ export interface AbilityEffectChange {
 
 /**
  * Flavor text for abilities
+ *
+ * Nested in: https://pokeapi.co/api/v2/ability/{id or name}/
  */
 export interface AbilityFlavorText {
    /** The localized flavor text for an ability */
@@ -60,6 +66,8 @@ export interface AbilityFlavorText {
 
 /**
  * Pokemon that may have the ability
+ *
+ * Nested in: https://pokeapi.co/api/v2/ability/{id or name}/
  */
 export interface AbilityPokemon {
    /** Whether this ability is hidden (not visible in normal gameplay) */
