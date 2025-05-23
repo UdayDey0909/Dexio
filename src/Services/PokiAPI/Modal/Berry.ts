@@ -3,6 +3,7 @@ import { NamedAPIResource, Name } from "./Common";
 /**
  * Berries are small fruits that can provide HP and status condition restoration,
  * stat enhancement, and even damage negation when eaten by Pokémon.
+ * Endpoint: https://pokeapi.co/api/v2/berry/{id or name}/
  */
 export interface Berry {
    /** The identifier for this berry resource */
@@ -44,6 +45,7 @@ export interface Berry {
 
 /**
  * Maps berries to their different flavors
+ * No separate endpoint; part of Berry/Flavor structure
  */
 export interface BerryFlavorMap {
    /** How powerful the referenced flavor is for this berry */
@@ -55,6 +57,7 @@ export interface BerryFlavorMap {
 
 /**
  * Berry firmness determines how hard a berry is
+ * Endpoint: https://pokeapi.co/api/v2/berry-firmness/{id or name}/
  */
 export interface BerryFirmness {
    /** The identifier for this berry firmness resource */
@@ -72,6 +75,7 @@ export interface BerryFirmness {
 
 /**
  * Flavors determine whether a Pokémon will benefit or suffer from eating a berry
+ * Endpoint: https://pokeapi.co/api/v2/berry-flavor/{id or name}/
  */
 export interface BerryFlavor {
    /** The identifier for this berry flavor resource */
@@ -92,6 +96,7 @@ export interface BerryFlavor {
 
 /**
  * Maps flavors to berries
+ * No separate endpoint; part of BerryFlavor structure
  */
 export interface FlavorBerryMap {
    /** How powerful the referenced flavor is for this berry */

@@ -113,6 +113,7 @@ export interface VersionGameIndex {
 
 /**
  * Language information
+ * Endpoint: https://pokeapi.co/api/v2/language/{id or name}/
  */
 export interface Language {
    /** The identifier for this language resource */

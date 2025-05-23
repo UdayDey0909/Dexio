@@ -2,6 +2,7 @@ import { NamedAPIResource, Name, Effect, FlavorText } from "./Common";
 
 /**
  * Contest types are categories judges used to weigh a Pokémon's condition in Pokémon contests
+ * Endpoint: https://pokeapi.co/api/v2/contest-type/{id or name}/
  */
 export interface ContestType {
    /** The identifier for this contest type resource */
@@ -19,6 +20,7 @@ export interface ContestType {
 
 /**
  * Contest effects refer to the effects of moves when used in contests
+ * Endpoint: https://pokeapi.co/api/v2/contest-effect/{id}/
  */
 export interface ContestEffect {
    /** The identifier for this contest effect resource */
@@ -39,6 +41,7 @@ export interface ContestEffect {
 
 /**
  * Super contest effects refer to the effects of moves when used in super contests
+ * Endpoint: https://pokeapi.co/api/v2/super-contest-effect/{id}/
  */
 export interface SuperContestEffect {
    /** The identifier for this super contest effect resource */

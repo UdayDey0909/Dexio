@@ -2,6 +2,8 @@ import { Name, NamedAPIResource } from "./Common";
 
 /**
  * Methods by which the player might can encounter Pokémon in the wild
+ *
+ * Endpoint: https://pokeapi.co/api/v2/encounter-method/{id or name}/
  */
 export interface EncounterMethod {
    /** The identifier for this encounter method resource */
@@ -19,6 +21,8 @@ export interface EncounterMethod {
 
 /**
  * Conditions which affect what Pokémon might appear in the wild
+ *
+ * Endpoint: https://pokeapi.co/api/v2/encounter-condition/{id or name}/
  */
 export interface EncounterCondition {
    /** The identifier for this encounter condition resource */
@@ -36,6 +40,8 @@ export interface EncounterCondition {
 
 /**
  * Encounter condition values are the various states that an encounter condition can have
+ *
+ * Endpoint: https://pokeapi.co/api/v2/encounter-condition-value/{id or name}/
  */
 export interface EncounterConditionValue {
    /** The identifier for this encounter condition value resource */
