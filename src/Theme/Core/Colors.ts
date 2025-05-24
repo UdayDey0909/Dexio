@@ -26,8 +26,8 @@ export const baseColors = {
       info: "#3B82F6",
       accent: "#22d3ee",
    },
-   white: "#EEEEFF",
-   black: "#151922",
+   white: "#FFFFFF",
+   black: "#000000",
    slate: "#F1F5F9", // BG Color
    lightGray: "#F3F4F6",
    mediumGray: "#9CA3AF",
