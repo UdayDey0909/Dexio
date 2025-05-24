@@ -1,4 +1,4 @@
-import { NamedAPIResource } from "./Common";
+import { NamedAPIResource, Name } from "./Common";
 
 /**
  * Areas used for grouping Pokémon from the Pal Park
@@ -31,15 +31,4 @@ export interface PalParkEncounterSpecies {
 
    /** The Pokémon species that can be encountered */
    pokemon_species: NamedAPIResource;
-}
-
-/**
- * Localized names used for various resources
- */
-export interface Name {
-   /** The localized name */
-   name: string;
-
-   /** The language this name is in */
-   language: NamedAPIResource;
 }

@@ -1,4 +1,4 @@
-import { NamedAPIResource } from "./Common";
+import { NamedAPIResource, Name } from "./Common";
 
 /**
  * Pokéathlon stats are different attributes of a Pokémon's performance in Pokéathlon events
@@ -39,15 +39,4 @@ export interface NaturePokeathlonStatAffect {
 
    /** The nature causing the change */
    nature: NamedAPIResource;
-}
-
-/**
- * Localized names used for various resources
- */
-export interface Name {
-   /** The localized name */
-   name: string;
-
-   /** The language this name is in */
-   language: NamedAPIResource;
 }

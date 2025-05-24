@@ -1,4 +1,4 @@
-import { NamedAPIResource, APIResource } from "./Common";
+import { NamedAPIResource, APIResource, Name, Description } from "./Common";
 
 /**
  * Stats determine certain aspects of battles
@@ -270,26 +270,4 @@ export interface PokemonSpeciesGender {
 
    /** A Pokémon species that can be the referenced gender */
    pokemon_species: NamedAPIResource;
-}
-
-/**
- * Localized names used for various resources
- */
-export interface Name {
-   /** The localized name */
-   name: string;
-
-   /** The language this name is in */
-   language: NamedAPIResource;
-}
-
-/**
- * Descriptions used for various resources
- */
-export interface Description {
-   /** The localized description */
-   description: string;
-
-   /** The language this description is in */
-   language: NamedAPIResource;
 }
