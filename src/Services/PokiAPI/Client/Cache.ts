@@ -127,19 +127,47 @@ export const cacheKeys = {
    },
 } as const;
 
+// Type guard to check if error is APIError
+const isAPIError = (error: unknown): error is APIError => {
+   return (
+      typeof error === "object" &&
+      error !== null &&
+      "code" in error &&
+      "message" in error &&
+      "retryable" in error
+   );
+};
+
 // Query client configuration
 export const queryClient = new QueryClient({
    defaultOptions: {
       queries: {
          staleTime: CACHE_CONFIG.STALE_TIME.MEDIUM,
-         retry: (failureCount, error: APIError) => {
-            if (
-               error?.code &&
-               parseInt(error.code) >= 400 &&
-               parseInt(error.code) < 500
-            ) {
-               return false;
+         retry: (failureCount, error) => {
+            // Check if it's an APIError with a 4xx status code
+            if (isAPIError(error)) {
+               const statusCode = parseInt(error.code);
+               if (statusCode >= 400 && statusCode < 500) {
+                  return false;
+               }
+               // Use the retryable property if available
+               if (error.retryable === false) {
+                  return false;
+               }
             }
+
+            // For standard HTTP errors, check status
+            if (error instanceof Error && "status" in error) {
+               const status = (error as any).status;
+               if (
+                  typeof status === "number" &&
+                  status >= 400 &&
+                  status < 500
+               ) {
+                  return false;
+               }
+            }
+
             return failureCount < 3;
          },
          retryDelay: (attemptIndex) =>
