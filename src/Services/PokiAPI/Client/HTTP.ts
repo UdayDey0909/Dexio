@@ -1,17 +1,21 @@
 import axios, { AxiosInstance, AxiosResponse } from "axios";
 import { PokemonClient } from "pokenode-ts";
+import { APIError } from "./Types";
 
-interface APIError {
-   code: string;
-   message: string;
-   details?: string;
-   retryable: boolean;
-}
-
+/**
+ * HTTPClient wraps Axios and Pokenode-TS for unified API communication with PokeAPI.
+ * - Automatically configures base URL, headers, and timeout.
+ * - Logs requests/responses in development mode.
+ * - Implements automatic retry on server errors.
+ * - Exposes both raw Axios instance and PokeAPI client.
+ */
 export class HTTPClient {
    private readonly axiosInstance: AxiosInstance;
    private readonly pokeClient: PokemonClient;
 
+   /**
+    * Initializes the HTTPClient with Axios and PokeAPI client.
+    */
    constructor() {
       this.axiosInstance = axios.create({
          baseURL: "https://pokeapi.co/api/v2/",
@@ -27,7 +31,9 @@ export class HTTPClient {
    }
 
    /**
-    * Setup request and response interceptors
+    * Sets up request and response interceptors for logging and error handling.
+    * - Logs request and response info in development mode.
+    * - Adds automatic retry with exponential backoff for server errors (status ≥ 500).
     */
    private setupInterceptors(): void {
       this.axiosInstance.interceptors.request.use(
@@ -88,7 +94,10 @@ export class HTTPClient {
    }
 
    /**
-    * Convert Axios or network error into a custom APIError
+    * Converts an Axios error into a standardized `APIError` object.
+    *
+    * @param error - Axios or network error object
+    * @returns Structured `APIError` with message, code, and retry hint
     */
    private formatError(error: any): APIError {
       return {
@@ -100,18 +109,23 @@ export class HTTPClient {
    }
 
    /**
-    * Axios instance for manual REST calls (optional)
+    * Returns the configured Axios instance.
+    * Useful for making manual REST requests.
     */
    public get axios(): AxiosInstance {
       return this.axiosInstance;
    }
 
    /**
-    * Full-featured PokeAPI client
+    * Returns the Pokenode-TS `PokemonClient` instance.
+    * Provides a full-featured wrapper over the PokeAPI.
     */
    public get client(): PokemonClient {
       return this.pokeClient;
    }
 }
 
+/**
+ * Singleton instance of `HTTPClient` for app-wide usage.
+ */
 export const httpClient = new HTTPClient();

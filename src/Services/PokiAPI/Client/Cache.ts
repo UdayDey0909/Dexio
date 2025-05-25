@@ -1,25 +1,9 @@
-// src/services/pokemon-api/client/cache.ts
 import { QueryClient } from "@tanstack/react-query";
+import { APIError, SearchOptions, PokemonFilters } from "./Types";
 
-interface APIError {
-   code: string;
-   message: string;
-   details?: string;
-   retryable: boolean;
-}
-
-export interface PokemonFilters {
-   type?: string;
-   generation?: number;
-   limit?: number;
-   offset?: number;
-}
-
-export interface SearchOptions {
-   query: string;
-   limit?: number;
-}
-
+/**
+ * Configuration constants for cache and stale times
+ */
 export const CACHE_CONFIG = {
    VERSION: "v1",
    STALE_TIME: {
@@ -34,7 +18,11 @@ export const CACHE_CONFIG = {
    },
 } as const;
 
-// Utility for creating stable cache keys
+/**
+ * Normalize object keys to ensure consistent cache keys
+ * @param obj - Object to normalize
+ * @returns Normalized object with sorted keys
+ */
 const normalizeObject = <T extends Record<string, any>>(obj: T): T => {
    const normalized = {} as T;
    Object.keys(obj)
@@ -48,13 +36,25 @@ const normalizeObject = <T extends Record<string, any>>(obj: T): T => {
    return normalized;
 };
 
+/**
+ * Stable stringify for objects to use in cache keys
+ * @param obj - Any object
+ * @returns A stable, stringified representation
+ */
 const stableStringify = (obj: any): string => {
    if (!obj || typeof obj !== "object") return String(obj);
    return JSON.stringify(normalizeObject(obj));
 };
 
-// Default filter factories
+/**
+ * Default filters generator for common queries
+ */
 export const defaultFilters = {
+   /**
+    * Generates default Pokémon list filters
+    * @param overrides - Optional override values
+    * @returns Complete filter object
+    */
    pokemon: (overrides: Partial<PokemonFilters> = {}): PokemonFilters => {
       const baseFilters: PokemonFilters = {
          limit: 20,
@@ -65,6 +65,12 @@ export const defaultFilters = {
       return normalizeObject({ ...baseFilters, ...overrides });
    },
 
+   /**
+    * Generates default search options for queries
+    * @param query - Search string
+    * @param overrides - Optional override values
+    * @returns Complete search options
+    */
    search: (
       query: string,
       overrides: Partial<Omit<SearchOptions, "query">> = {}
@@ -77,7 +83,9 @@ export const defaultFilters = {
    },
 };
 
-// Cache key factory
+/**
+ * Cache key factory for React Query keys
+ */
 export const cacheKeys = {
    pokemon: {
       all: ["pokemon", CACHE_CONFIG.VERSION] as const,
@@ -127,7 +135,11 @@ export const cacheKeys = {
    },
 } as const;
 
-// Type guard to check if error is APIError
+/**
+ * Type guard to check if an error is an APIError
+ * @param error - Unknown error object
+ * @returns Boolean indicating if error matches APIError
+ */
 const isAPIError = (error: unknown): error is APIError => {
    return (
       typeof error === "object" &&
@@ -138,25 +150,23 @@ const isAPIError = (error: unknown): error is APIError => {
    );
 };
 
-// Query client configuration
+/**
+ * React Query client with global configuration
+ */
 export const queryClient = new QueryClient({
    defaultOptions: {
       queries: {
          staleTime: CACHE_CONFIG.STALE_TIME.MEDIUM,
          retry: (failureCount, error) => {
-            // Check if it's an APIError with a 4xx status code
             if (isAPIError(error)) {
                const statusCode = parseInt(error.code);
                if (statusCode >= 400 && statusCode < 500) {
                   return false;
                }
-               // Use the retryable property if available
                if (error.retryable === false) {
                   return false;
                }
             }
-
-            // For standard HTTP errors, check status
             if (error instanceof Error && "status" in error) {
                const status = (error as any).status;
                if (
@@ -167,7 +177,6 @@ export const queryClient = new QueryClient({
                   return false;
                }
             }
-
             return failureCount < 3;
          },
          retryDelay: (attemptIndex) =>
@@ -183,31 +192,3 @@ export const queryClient = new QueryClient({
       },
    },
 });
-
-// Cache utilities
-export const cacheUtils = {
-   invalidatePokemon: () =>
-      queryClient.invalidateQueries({ queryKey: cacheKeys.pokemon.all }),
-
-   invalidatePokemonDetail: (id: number | string) =>
-      queryClient.invalidateQueries({ queryKey: cacheKeys.pokemon.detail(id) }),
-
-   prefetchPokemonDetail: (id: number | string) =>
-      queryClient.prefetchQuery({
-         queryKey: cacheKeys.pokemon.detail(id),
-         staleTime: CACHE_CONFIG.STALE_TIME.LONG,
-      }),
-
-   getCachedPokemon: <T = any>(id: number | string): T | undefined =>
-      queryClient.getQueryData(cacheKeys.pokemon.detail(id)),
-
-   setCachedPokemon: <T = any>(id: number | string, data: T) =>
-      queryClient.setQueryData(cacheKeys.pokemon.detail(id), data),
-
-   clearAll: () => queryClient.clear(),
-
-   getCacheStats: () => ({
-      queryCount: queryClient.getQueryCache().getAll().length,
-      mutationCount: queryClient.getMutationCache().getAll().length,
-   }),
-};
