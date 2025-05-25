@@ -9,8 +9,8 @@ interface APIError {
 }
 
 class HTTPClient {
-   private axiosInstance: AxiosInstance;
-   private pokemonClient: PokemonClient;
+   private readonly axiosInstance: AxiosInstance;
+   private readonly pokeClient: PokemonClient;
 
    constructor() {
       this.axiosInstance = axios.create({
@@ -22,12 +22,14 @@ class HTTPClient {
          },
       });
 
-      this.pokemonClient = new PokemonClient();
+      this.pokeClient = new PokemonClient();
       this.setupInterceptors();
    }
 
+   /**
+    * Setup request and response interceptors
+    */
    private setupInterceptors(): void {
-      // Request interceptor
       this.axiosInstance.interceptors.request.use(
          (config) => {
             console.log(
@@ -41,7 +43,6 @@ class HTTPClient {
          }
       );
 
-      // Response interceptor
       this.axiosInstance.interceptors.response.use(
          (response: AxiosResponse) => {
             console.log(
@@ -52,7 +53,6 @@ class HTTPClient {
          async (error) => {
             const config = error.config;
 
-            // Retry logic with exponential backoff
             if (error.response?.status >= 500 && config && !config._retry) {
                config._retry = true;
                config._retryCount = config._retryCount || 0;
@@ -63,7 +63,6 @@ class HTTPClient {
                   console.log(
                      `[API Retry] Attempt ${config._retryCount} after ${delay}ms`
                   );
-
                   await new Promise((resolve) => setTimeout(resolve, delay));
                   return this.axiosInstance(config);
                }
@@ -79,6 +78,9 @@ class HTTPClient {
       );
    }
 
+   /**
+    * Convert Axios or network error into a custom APIError
+    */
    private formatError(error: any): APIError {
       return {
          code: error.response?.status?.toString() || "NETWORK_ERROR",
@@ -88,12 +90,18 @@ class HTTPClient {
       };
    }
 
+   /**
+    * Axios instance for manual REST calls (optional)
+    */
    public get axios(): AxiosInstance {
       return this.axiosInstance;
    }
 
-   public get pokeClient(): PokemonClient {
-      return this.pokemonClient;
+   /**
+    * Full-featured PokeAPI client
+    */
+   public get client(): PokemonClient {
+      return this.pokeClient;
    }
 }
 
