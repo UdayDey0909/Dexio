@@ -1,4 +1,4 @@
-import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from "axios";
+import axios, { AxiosInstance, AxiosResponse } from "axios";
 import { PokemonClient } from "pokenode-ts";
 
 interface APIError {
@@ -8,7 +8,7 @@ interface APIError {
    retryable: boolean;
 }
 
-class HTTPClient {
+export class HTTPClient {
    private readonly axiosInstance: AxiosInstance;
    private readonly pokeClient: PokemonClient;
 
@@ -32,27 +32,32 @@ class HTTPClient {
    private setupInterceptors(): void {
       this.axiosInstance.interceptors.request.use(
          (config) => {
-            console.log(
-               `[API Request] ${config.method?.toUpperCase()} ${config.url}`
-            );
+            if (process.env.NODE_ENV === "development") {
+               console.log(
+                  `[API Request] ${config.method?.toUpperCase()} ${config.url}`
+               );
+            }
             return config;
          },
          (error) => {
             console.error("[API Request Error]", error);
-            return Promise.reject(error);
+            return Promise.reject(this.formatError(error));
          }
       );
 
       this.axiosInstance.interceptors.response.use(
          (response: AxiosResponse) => {
-            console.log(
-               `[API Response] ${response.status} ${response.config.url}`
-            );
+            if (process.env.NODE_ENV === "development") {
+               console.log(
+                  `[API Response] ${response.status} ${response.config.url}`
+               );
+            }
             return response;
          },
          async (error) => {
             const config = error.config;
 
+            // Retry logic for server errors
             if (error.response?.status >= 500 && config && !config._retry) {
                config._retry = true;
                config._retryCount = config._retryCount || 0;
@@ -60,9 +65,13 @@ class HTTPClient {
                if (config._retryCount < 3) {
                   config._retryCount++;
                   const delay = Math.pow(2, config._retryCount) * 1000;
-                  console.log(
-                     `[API Retry] Attempt ${config._retryCount} after ${delay}ms`
-                  );
+
+                  if (process.env.NODE_ENV === "development") {
+                     console.log(
+                        `[API Retry] Attempt ${config._retryCount} after ${delay}ms`
+                     );
+                  }
+
                   await new Promise((resolve) => setTimeout(resolve, delay));
                   return this.axiosInstance(config);
                }
