@@ -152,19 +152,44 @@ class CacheKeyBuilder {
 }
 
 /**
+ * Factory method to create standard resource cache keys
+ */
+const makeResourceKeys = (name: string) => {
+   const builder = new CacheKeyBuilder(name, CACHE_CONFIG.VERSION);
+   return {
+      all: builder.base,
+      list: () => builder.lists(),
+      detail: (id: number | string) => builder.detail(id),
+   };
+};
+
+/**
+ * Factory method to create resource keys with filters support
+ */
+const makeFilteredResourceKeys = (
+   name: string,
+   filterFn?: (filters?: any) => any
+) => {
+   const builder = new CacheKeyBuilder(name, CACHE_CONFIG.VERSION);
+   return {
+      all: builder.base,
+      lists: () => builder.lists(),
+      list: (filters?: any) =>
+         builder.list(filterFn ? filterFn(filters) : filters),
+      details: () => builder.details(),
+      detail: (id: number | string) => builder.detail(id),
+   };
+};
+
+/**
  * Cache key factory with improved structure and extensibility
  */
 export const cacheKeys = {
-   // Pokemon keys
+   // Pokemon keys (complex resource with custom methods)
    pokemon: (() => {
       const builder = new CacheKeyBuilder("pokemon", CACHE_CONFIG.VERSION);
       return {
-         all: builder.base,
-         lists: () => builder.lists(),
-         list: (filters: PokemonFilters = {}) =>
-            builder.list(defaultFilters.pokemon(filters)),
-         details: () => builder.details(),
-         detail: (id: number | string) => builder.detail(id),
+         ...makeFilteredResourceKeys("pokemon", defaultFilters.pokemon),
          species: (id: number | string) => builder.nested("species", id),
          evolution: (id: number | string) => builder.nested("evolution", id),
          search: (
@@ -174,45 +199,11 @@ export const cacheKeys = {
       };
    })(),
 
-   // Types keys
-   types: (() => {
-      const builder = new CacheKeyBuilder("types", CACHE_CONFIG.VERSION);
-      return {
-         all: builder.base,
-         list: () => builder.lists(),
-         detail: (id: number | string) => builder.detail(id),
-      };
-   })(),
-
-   // Moves keys
-   moves: (() => {
-      const builder = new CacheKeyBuilder("moves", CACHE_CONFIG.VERSION);
-      return {
-         all: builder.base,
-         list: () => builder.lists(),
-         detail: (id: number | string) => builder.detail(id),
-      };
-   })(),
-
-   // Abilities keys
-   abilities: (() => {
-      const builder = new CacheKeyBuilder("abilities", CACHE_CONFIG.VERSION);
-      return {
-         all: builder.base,
-         list: () => builder.lists(),
-         detail: (id: number | string) => builder.detail(id),
-      };
-   })(),
-
-   // Growth rates keys (new endpoint)
-   growthRates: (() => {
-      const builder = new CacheKeyBuilder("growth-rates", CACHE_CONFIG.VERSION);
-      return {
-         all: builder.base,
-         list: () => builder.lists(),
-         detail: (id: number | string) => builder.detail(id),
-      };
-   })(),
+   // Simple resource keys using factory
+   types: makeResourceKeys("types"),
+   moves: makeResourceKeys("moves"),
+   abilities: makeResourceKeys("abilities"),
+   growthRates: makeResourceKeys("growth-rates"),
 } as const;
 
 /**
