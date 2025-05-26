@@ -56,4 +56,66 @@ export const cacheUtils = {
       queryCount: queryClient.getQueryCache().getAll().length,
       mutationCount: queryClient.getMutationCache().getAll().length,
    }),
+
+   /**
+    * Get cache statistics with memory usage
+    */
+   getStats: () => ({
+      queryCount: queryClient.getQueryCache().getAll().length,
+      mutationCount: queryClient.getMutationCache().getAll().length,
+      memoryUsage: queryClient
+         .getQueryCache()
+         .getAll()
+         .reduce((acc, query) => {
+            return acc + (JSON.stringify(query.state.data || {}).length || 0);
+         }, 0),
+   }),
+
+   /**
+    * Clear stale queries
+    */
+   clearStale: () => {
+      queryClient
+         .getQueryCache()
+         .getAll()
+         .forEach((query) => {
+            if (query.isStale()) {
+               queryClient.removeQueries({ queryKey: query.queryKey });
+            }
+         });
+   },
+
+   /**
+    * Preload critical data
+    */
+   preloadCritical: async () => {
+      const criticalQueries = [
+         {
+            queryKey: cacheKeys.types.list(),
+            staleTime: CACHE_CONFIG.STALE_TIME.EXTRA_LONG,
+         },
+         {
+            queryKey: cacheKeys.generations.list(),
+            staleTime: CACHE_CONFIG.STALE_TIME.EXTRA_LONG,
+         },
+      ];
+
+      await Promise.allSettled(
+         criticalQueries.map((query) => queryClient.prefetchQuery(query))
+      );
+   },
+
+   /**
+    * Export cache data for debugging
+    */
+   exportData: () => {
+      const queries = queryClient.getQueryCache().getAll();
+      return queries.map((query) => ({
+         queryKey: query.queryKey,
+         state: query.state.status,
+         dataSize: JSON.stringify(query.state.data || {}).length,
+         lastUpdated: query.state.dataUpdatedAt,
+         isStale: query.isStale(),
+      }));
+   },
 };
