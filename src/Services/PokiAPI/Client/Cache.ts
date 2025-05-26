@@ -84,55 +84,135 @@ export const defaultFilters = {
 };
 
 /**
- * Cache key factory for React Query keys
+ * Generic cache key builder for consistent key generation
+ */
+class CacheKeyBuilder {
+   constructor(private baseKey: string, private version: string) {}
+
+   /**
+    * Generate base key with version
+    */
+   get base() {
+      return [this.baseKey, this.version] as const;
+   }
+
+   /**
+    * Generate list keys
+    */
+   lists() {
+      return [...this.base, "list"] as const;
+   }
+
+   /**
+    * Generate list key with filters
+    */
+   list(filters?: any) {
+      const key = [...this.lists()] as const;
+      return filters ? ([...key, stableStringify(filters)] as const) : key;
+   }
+
+   /**
+    * Generate details base key
+    */
+   details() {
+      return [...this.base, "detail"] as const;
+   }
+
+   /**
+    * Generate detail key for specific item
+    */
+   detail(id: number | string) {
+      return [...this.details(), String(id)] as const;
+   }
+
+   /**
+    * Generate search base key
+    */
+   searches() {
+      return [...this.base, "search"] as const;
+   }
+
+   /**
+    * Generate search key with options
+    */
+   search(query: string, options: any = {}) {
+      return [
+         ...this.searches(),
+         stableStringify(defaultFilters.search(query, options)),
+      ] as const;
+   }
+
+   /**
+    * Generate custom nested key
+    */
+   nested(type: string, id?: number | string) {
+      const baseKey = [...this.base, type] as const;
+      return id ? ([...baseKey, String(id)] as const) : baseKey;
+   }
+}
+
+/**
+ * Cache key factory with improved structure and extensibility
  */
 export const cacheKeys = {
-   pokemon: {
-      all: ["pokemon", CACHE_CONFIG.VERSION] as const,
-      lists: () => [...cacheKeys.pokemon.all, "list"] as const,
-      list: (filters: PokemonFilters = {}) =>
-         [
-            ...cacheKeys.pokemon.lists(),
-            stableStringify(defaultFilters.pokemon(filters)),
-         ] as const,
-      details: () => [...cacheKeys.pokemon.all, "detail"] as const,
-      detail: (id: number | string) =>
-         [...cacheKeys.pokemon.details(), String(id)] as const,
-      species: (id: number | string) =>
-         [...cacheKeys.pokemon.all, "species", String(id)] as const,
-      evolution: (id: number | string) =>
-         [...cacheKeys.pokemon.all, "evolution", String(id)] as const,
-      search: (
-         query: string,
-         options: Partial<Omit<SearchOptions, "query">> = {}
-      ) =>
-         [
-            ...cacheKeys.pokemon.all,
-            "search",
-            stableStringify(defaultFilters.search(query, options)),
-         ] as const,
-   },
+   // Pokemon keys
+   pokemon: (() => {
+      const builder = new CacheKeyBuilder("pokemon", CACHE_CONFIG.VERSION);
+      return {
+         all: builder.base,
+         lists: () => builder.lists(),
+         list: (filters: PokemonFilters = {}) =>
+            builder.list(defaultFilters.pokemon(filters)),
+         details: () => builder.details(),
+         detail: (id: number | string) => builder.detail(id),
+         species: (id: number | string) => builder.nested("species", id),
+         evolution: (id: number | string) => builder.nested("evolution", id),
+         search: (
+            query: string,
+            options: Partial<Omit<SearchOptions, "query">> = {}
+         ) => builder.search(query, options),
+      };
+   })(),
 
-   types: {
-      all: ["types", CACHE_CONFIG.VERSION] as const,
-      list: () => [...cacheKeys.types.all, "list"] as const,
-      detail: (id: number | string) =>
-         [...cacheKeys.types.all, "detail", String(id)] as const,
-   },
+   // Types keys
+   types: (() => {
+      const builder = new CacheKeyBuilder("types", CACHE_CONFIG.VERSION);
+      return {
+         all: builder.base,
+         list: () => builder.lists(),
+         detail: (id: number | string) => builder.detail(id),
+      };
+   })(),
 
-   moves: {
-      all: ["moves", CACHE_CONFIG.VERSION] as const,
-      list: () => [...cacheKeys.moves.all, "list"] as const,
-      detail: (id: number | string) =>
-         [...cacheKeys.moves.all, "detail", String(id)] as const,
-   },
+   // Moves keys
+   moves: (() => {
+      const builder = new CacheKeyBuilder("moves", CACHE_CONFIG.VERSION);
+      return {
+         all: builder.base,
+         list: () => builder.lists(),
+         detail: (id: number | string) => builder.detail(id),
+      };
+   })(),
 
-   abilities: {
-      all: ["abilities", CACHE_CONFIG.VERSION] as const,
-      list: () => [...cacheKeys.abilities.all, "list"] as const,
-      detail: (id: number | string) =>
-         [...cacheKeys.abilities.all, "detail", String(id)] as const,
-   },
+   // Abilities keys
+   abilities: (() => {
+      const builder = new CacheKeyBuilder("abilities", CACHE_CONFIG.VERSION);
+      return {
+         all: builder.base,
+         list: () => builder.lists(),
+         detail: (id: number | string) => builder.detail(id),
+      };
+   })(),
+
+   // Growth rates keys (new endpoint)
+   growthRates: (() => {
+      const builder = new CacheKeyBuilder("growth-rates", CACHE_CONFIG.VERSION);
+      return {
+         all: builder.base,
+         list: () => builder.lists(),
+         detail: (id: number | string) => builder.detail(id),
+      };
+   })(),
 } as const;
 
 /**
