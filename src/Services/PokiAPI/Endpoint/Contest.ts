@@ -1,6 +1,6 @@
 // src/Services/PokiAPI/Endpoints/ContestEndpoints.ts
 import { BaseEndpoint } from "./Common";
-import { NamedAPIResourceList } from "../Model/Common";
+import { NamedAPIResourceList } from "../Interface/Common";
 
 /**
  * Contest-specific endpoints

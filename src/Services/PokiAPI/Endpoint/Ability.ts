@@ -1,7 +1,7 @@
 // src/Services/PokiAPI/Endpoints/AbilityEndpoints.ts
 import { BaseEndpoint } from "./Common";
-import { Ability } from "../Model/Ability";
-import { NamedAPIResourceList } from "../Model/Common";
+import { Ability } from "../Interface/Ability";
+import { NamedAPIResourceList } from "../Interface/Common";
 
 /**
  * Ability-specific endpoints

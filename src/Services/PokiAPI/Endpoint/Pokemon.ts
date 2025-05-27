@@ -2,7 +2,7 @@
 import { Pokemon } from "pokenode-ts";
 import { BaseEndpoint } from "./Common";
 import { PokemonFilters, SearchOptions } from "../Client/Types";
-import { NamedAPIResourceList } from "../Model/Common";
+import { NamedAPIResourceList } from "../Interface/Common";
 
 /**
  * Pokemon-specific endpoints with advanced functionality

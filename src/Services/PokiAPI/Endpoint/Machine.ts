@@ -1,6 +1,6 @@
 // src/Services/PokiAPI/Endpoints/MachineEndpoints.ts
 import { BaseEndpoint } from "./Common";
-import { NamedAPIResourceList } from "../Model/Common";
+import { NamedAPIResourceList } from "../Interface/Common";
 
 /**
  * Machine-specific endpoints

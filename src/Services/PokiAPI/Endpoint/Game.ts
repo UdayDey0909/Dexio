@@ -1,6 +1,6 @@
 // src/Services/PokiAPI/Endpoints/GameEndpoints.ts
 import { BaseEndpoint } from "./Common";
-import { NamedAPIResourceList } from "../Model/Common";
+import { NamedAPIResourceList } from "../Interface/Common";
 
 /**
  * Game-specific endpoints

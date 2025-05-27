@@ -1,7 +1,7 @@
 // src/Services/PokiAPI/Endpoints/BerryEndpoints.ts
 import { BaseEndpoint } from "./Common";
-import { Berry, BerryFirmness, BerryFlavor } from "../Model/Berry";
-import { NamedAPIResourceList } from "../Model/Common";
+import { Berry, BerryFirmness, BerryFlavor } from "../Interface/Berry";
+import { NamedAPIResourceList } from "../Interface/Common";
 
 /**
  * Berry-specific endpoints

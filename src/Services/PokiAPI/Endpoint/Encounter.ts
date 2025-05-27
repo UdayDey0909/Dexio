@@ -1,6 +1,6 @@
 // src/Services/PokiAPI/Endpoints/EncounterEndpoints.ts
 import { BaseEndpoint } from "./Common";
-import { NamedAPIResourceList } from "../Model/Common";
+import { NamedAPIResourceList } from "../Interface/Common";
 
 /**
  * Encounter-specific endpoints

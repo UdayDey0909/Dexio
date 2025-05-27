@@ -1,7 +1,7 @@
 // src/Services/PokiAPI/Endpoints/Common.ts
 import { httpClient } from "../Client/HTTP";
 import { APIError, PokemonFilters, SearchOptions } from "../Client/Types";
-import { NamedAPIResourceList, PaginatedResults } from "../Model/Common";
+import { NamedAPIResourceList, PaginatedResults } from "../Interface/Common";
 
 /**
  * Base endpoint class with common functionality
