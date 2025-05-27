@@ -1,5 +1,5 @@
 import AxiosMockAdapter from "axios-mock-adapter";
-import { httpClient } from "@/Services/PokiAPI";
+import { httpClient } from "@/Services/Client/HTTP";
 import { AxiosInstance } from "axios";
 
 jest.mock("@react-native-async-storage/async-storage");
