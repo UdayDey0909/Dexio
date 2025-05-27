@@ -13,4 +13,7 @@ export * from "./Move";
 export * from "./Nature";
 export * from "./PalPark";
 export * from "./Pokeathlon";
+export * from "./Pokemon";
+export * from "./Species";
 export * from "./Stat";
+export * from "./Type";
