@@ -11,7 +11,7 @@ import {
    EndpointConfig,
    BaseFilters,
    endpointUtils,
-} from "./Shared/BaseEndpoint";
+} from "./Shared/Base";
 
 // Filter interfaces
 export interface ContestFilters extends BaseFilters {

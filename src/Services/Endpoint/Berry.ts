@@ -13,7 +13,7 @@ import {
    BaseFilters,
    FilterBuilder,
    endpointUtils,
-} from "./Shared/BaseEndpoint";
+} from "./Shared/Base";
 
 /**
  * Extended filters for berry-specific queries
