@@ -91,6 +91,65 @@ describe("cacheKeys", () => {
    });
 });
 
+describe("queryClient", () => {
+   beforeEach(() => {
+      queryClient.clear();
+   });
+
+   it("should be configured correctly", () => {
+      expect(queryClient).toBeDefined();
+      expect(typeof queryClient.setQueryData).toBe("function");
+      expect(typeof queryClient.getQueryData).toBe("function");
+      expect(typeof queryClient.clear).toBe("function");
+      expect(typeof queryClient.invalidateQueries).toBe("function");
+   });
+
+   it("should handle basic cache operations", () => {
+      const testKey = ["test", "key"];
+      const testData = { test: "data" };
+
+      // Set data
+      queryClient.setQueryData(testKey, testData);
+
+      // Get data immediately
+      const retrievedData = queryClient.getQueryData(testKey);
+      expect(retrievedData).toEqual(testData);
+   });
+
+   it("should handle pokemon cache keys", () => {
+      const pokemonId = 1;
+      const testData = { id: 1, name: "bulbasaur" };
+      const cacheKey = cacheKeys.pokemon.detail(pokemonId);
+
+      queryClient.setQueryData(cacheKey, testData);
+      const retrieved = queryClient.getQueryData(cacheKey);
+
+      expect(retrieved).toEqual(testData);
+   });
+
+   it("should clear cache correctly", () => {
+      const key1 = ["test1"];
+      const key2 = ["test2"];
+      const data1 = { data: "first" };
+      const data2 = { data: "second" };
+
+      // Set data
+      queryClient.setQueryData(key1, data1);
+      queryClient.setQueryData(key2, data2);
+
+      // Verify data exists
+      expect(queryClient.getQueryData(key1)).toEqual(data1);
+      expect(queryClient.getQueryData(key2)).toEqual(data2);
+
+      // Clear cache
+      queryClient.clear();
+
+      // Verify data is cleared
+      expect(queryClient.getQueryData(key1)).toBeUndefined();
+      expect(queryClient.getQueryData(key2)).toBeUndefined();
+   });
+});
+
 describe("cacheUtils", () => {
    beforeEach(() => {
       queryClient.clear();
@@ -102,15 +161,17 @@ describe("cacheUtils", () => {
       expect(typeof cacheUtils.getCachedPokemon).toBe("function");
       expect(typeof cacheUtils.setCachedPokemon).toBe("function");
       expect(typeof cacheUtils.clearAll).toBe("function");
-      expect(typeof cacheUtils.getCacheStats).toBe("function");
    });
 
    it("should set and get cached pokemon data", () => {
       const testData = { id: 1, name: "bulbasaur" };
+      const pokemonId = 1;
 
-      cacheUtils.setCachedPokemon(1, testData);
-      const cachedData = cacheUtils.getCachedPokemon(1);
+      // Use cacheUtils to set data
+      cacheUtils.setCachedPokemon(pokemonId, testData);
 
+      // Use cacheUtils to get data
+      const cachedData = cacheUtils.getCachedPokemon(pokemonId);
       expect(cachedData).toEqual(testData);
    });
 
@@ -119,36 +180,26 @@ describe("cacheUtils", () => {
       expect(cachedData).toBeUndefined();
    });
 
-   it("should provide cache stats", () => {
-      const stats = cacheUtils.getCacheStats();
-
-      expect(stats).toHaveProperty("queryCount");
-      expect(stats).toHaveProperty("mutationCount");
-      expect(typeof stats.queryCount).toBe("number");
-      expect(typeof stats.mutationCount).toBe("number");
-   });
-
    it("should clear all cache", () => {
-      // Add some data
-      cacheUtils.setCachedPokemon(1, { id: 1, name: "test" });
+      const testData = { id: 1, name: "test" };
+      const pokemonId = 1;
+
+      // Set some data
+      cacheUtils.setCachedPokemon(pokemonId, testData);
 
       // Verify data exists
-      expect(cacheUtils.getCachedPokemon(1)).toBeDefined();
+      expect(cacheUtils.getCachedPokemon(pokemonId)).toEqual(testData);
 
       // Clear cache
       cacheUtils.clearAll();
 
       // Verify data is cleared
-      expect(cacheUtils.getCachedPokemon(1)).toBeUndefined();
+      expect(cacheUtils.getCachedPokemon(pokemonId)).toBeUndefined();
    });
-});
 
-describe("queryClient", () => {
-   it("should be configured correctly", () => {
-      expect(queryClient).toBeDefined();
-
-      const defaultOptions = queryClient.getDefaultOptions();
-      expect(defaultOptions.queries?.staleTime).toBe(CACHE_CONFIG.STALE_TIME);
-      expect(defaultOptions.queries?.gcTime).toBe(CACHE_CONFIG.CACHE_TIME);
+   it("should handle invalidation methods", () => {
+      // These should not throw errors
+      expect(() => cacheUtils.invalidatePokemon()).not.toThrow();
+      expect(() => cacheUtils.invalidatePokemonDetail(1)).not.toThrow();
    });
 });

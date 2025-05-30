@@ -118,32 +118,34 @@ jest.mock("@react-navigation/native", () => ({
       children,
 }));
 
-// Mock React Query
-jest.mock("@tanstack/react-query", () => ({
-   useQuery: jest.fn(() => ({
-      data: undefined,
-      isLoading: false,
-      error: null,
-      refetch: jest.fn(),
-   })),
-   useMutation: jest.fn(() => ({
-      mutate: jest.fn(),
-      isLoading: false,
-      error: null,
-   })),
-   QueryClient: jest.fn(() => ({
-      clear: jest.fn(),
-      getQueryData: jest.fn(),
-      setQueryData: jest.fn(),
-      invalidateQueries: jest.fn(),
-      getDefaultOptions: jest.fn(() => ({
-         queries: {
-            staleTime: 300000,
-            gcTime: 600000,
-         },
+// REMOVED: Mock React Query - Let the real QueryClient work in tests!
+// Only mock the hooks that need React context, not the QueryClient itself
+jest.mock("@tanstack/react-query", () => {
+   const actual = jest.requireActual("@tanstack/react-query");
+   return {
+      ...actual,
+      // Keep the real QueryClient
+      QueryClient: actual.QueryClient,
+      // Only mock the hooks that require React context
+      useQuery: jest.fn(() => ({
+         data: undefined,
+         isLoading: false,
+         error: null,
+         refetch: jest.fn(),
       })),
-   })),
-}));
+      useMutation: jest.fn(() => ({
+         mutate: jest.fn(),
+         isLoading: false,
+         error: null,
+      })),
+      useQueryClient: jest.fn(() => ({
+         clear: jest.fn(),
+         getQueryData: jest.fn(),
+         setQueryData: jest.fn(),
+         invalidateQueries: jest.fn(),
+      })),
+   };
+});
 
 // Clean setup and teardown
 beforeEach(() => {
@@ -170,6 +172,6 @@ beforeAll(() => {
 });
 
 afterAll(() => {
-   console.warn = originalWarn;
+   console.warn = originalError;
    console.error = originalError;
 });
