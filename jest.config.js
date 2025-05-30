@@ -35,4 +35,8 @@ module.exports = {
    globals: {
       __DEV__: true,
    },
+   // Fix window redefinition issue
+   testEnvironmentOptions: {
+      url: "http://localhost",
+   },
 };

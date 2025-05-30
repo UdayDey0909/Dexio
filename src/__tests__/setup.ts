@@ -106,13 +106,8 @@ global.console = {
    log: jest.fn(),
 } as Console;
 
-// Setup global variables for React Native environment
-// Using process.env instead of __DEV__ to avoid TypeScript issues
-Object.defineProperty(global, "__DEV__", {
-   value: process.env.NODE_ENV !== "production",
-   writable: true,
-   configurable: true,
-});
+// The __DEV__ global is now properly typed in expo-env.d.ts
+// No need to redefine it here since Jest config handles it
 
 // Mock timers for testing
 beforeEach(() => {
