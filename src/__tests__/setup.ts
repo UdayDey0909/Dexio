@@ -1,8 +1,17 @@
-import "react-native-gesture-handler/jestSetup";
+// src/__tests__/setup.ts
 import "@testing-library/jest-native/extend-expect";
 
 // Mock React Native modules that aren't available in Jest
 jest.mock("react-native/Libraries/EventEmitter/NativeEventEmitter");
+
+// Mock Expo modules that cause import issues
+jest.mock("expo-modules-core", () => ({
+   EventEmitter: jest.fn(),
+   NativeModule: jest.fn(),
+   SharedObject: jest.fn(),
+   SharedRef: jest.fn(),
+   requireNativeModule: jest.fn(),
+}));
 
 // Mock AsyncStorage
 jest.mock("@react-native-async-storage/async-storage", () =>
@@ -82,6 +91,18 @@ jest.mock("expo-splash-screen", () => ({
    preventAutoHideAsync: jest.fn(),
 }));
 
+// Mock Expo Router
+jest.mock("expo-router", () => ({
+   useRouter: jest.fn(() => ({
+      push: jest.fn(),
+      back: jest.fn(),
+      replace: jest.fn(),
+   })),
+   useLocalSearchParams: jest.fn(() => ({})),
+   Link: ({ children }: { children: React.ReactNode }) => children,
+   Stack: ({ children }: { children: React.ReactNode }) => children,
+}));
+
 // Mock React Navigation
 jest.mock("@react-navigation/native", () => ({
    useNavigation: jest.fn(() => ({
@@ -95,6 +116,33 @@ jest.mock("@react-navigation/native", () => ({
    useFocusEffect: jest.fn(),
    NavigationContainer: ({ children }: { children: React.ReactNode }) =>
       children,
+}));
+
+// Mock React Query
+jest.mock("@tanstack/react-query", () => ({
+   useQuery: jest.fn(() => ({
+      data: undefined,
+      isLoading: false,
+      error: null,
+      refetch: jest.fn(),
+   })),
+   useMutation: jest.fn(() => ({
+      mutate: jest.fn(),
+      isLoading: false,
+      error: null,
+   })),
+   QueryClient: jest.fn(() => ({
+      clear: jest.fn(),
+      getQueryData: jest.fn(),
+      setQueryData: jest.fn(),
+      invalidateQueries: jest.fn(),
+      getDefaultOptions: jest.fn(() => ({
+         queries: {
+            staleTime: 300000,
+            gcTime: 600000,
+         },
+      })),
+   })),
 }));
 
 // Clean setup and teardown

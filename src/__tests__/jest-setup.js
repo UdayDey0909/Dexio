@@ -1,3 +1,4 @@
+// src/__tests__/jest-setup.js
 // This file runs before the test environment is set up
 
 // Set up essential globals that React Native expects
@@ -6,14 +7,20 @@ global.__REACT_DEVTOOLS_GLOBAL_HOOK__ = {};
 global.__BUNDLE_START_TIME__ = Date.now();
 global.__EXPO_WEB__ = false;
 
-// Prevent window redefinition error by ensuring clean global state
-if (typeof global.window !== "undefined") {
-   delete global.window;
-}
-
 // Setup fetch polyfill for React Native environment
 if (typeof global.fetch === "undefined") {
-   global.fetch = require("node-fetch");
+   const { default: fetch, Request, Response, Headers } = require("node-fetch");
+   global.fetch = fetch;
+   global.Request = Request;
+   global.Response = Response;
+   global.Headers = Headers;
+}
+
+// Setup TextEncoder/TextDecoder for modern Node.js compatibility
+if (typeof global.TextEncoder === "undefined") {
+   const { TextEncoder, TextDecoder } = require("util");
+   global.TextEncoder = TextEncoder;
+   global.TextDecoder = TextDecoder;
 }
 
 // Basic console setup (will be overridden in setup.ts if needed)
