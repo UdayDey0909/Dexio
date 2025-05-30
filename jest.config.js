@@ -27,16 +27,23 @@ module.exports = {
          statements: 80,
       },
    },
-   testEnvironment: "jsdom",
+   // Use React Native environment instead of jsdom to avoid window conflicts
+   testEnvironment: "react-native",
+   // Fixed: Use correct property name
    moduleNameMapping: {
       "^@/(.*)$": "<rootDir>/src/$1",
    },
-   // Add globals for React Native testing
+   // Globals for React Native testing
    globals: {
       __DEV__: true,
+      __REACT_DEVTOOLS_GLOBAL_HOOK__: {},
+      __BUNDLE_START_TIME__: 0,
+      __EXPO_WEB__: false,
    },
-   // Fix window redefinition issue
-   testEnvironmentOptions: {
-      url: "http://localhost",
-   },
+   // Clear setup to prevent conflicts
+   setupFiles: [],
+   // Timeouts
+   testTimeout: 10000,
+   // Force exit to prevent hanging
+   forceExit: true,
 };

@@ -97,25 +97,31 @@ jest.mock("@react-navigation/native", () => ({
       children,
 }));
 
-// Mock console methods for cleaner test output
-const originalConsole = global.console;
-global.console = {
-   ...originalConsole,
-   warn: jest.fn(),
-   error: jest.fn(),
-   log: jest.fn(),
-} as Console;
-
-// The __DEV__ global is now properly typed in expo-env.d.ts
-// No need to redefine it here since Jest config handles it
-
-// Mock timers for testing
+// Clean setup and teardown
 beforeEach(() => {
+   // Clear all timers and mocks before each test
    jest.clearAllTimers();
    jest.clearAllMocks();
 });
 
-// Cleanup after each test
 afterEach(() => {
+   // Restore all mocks after each test
    jest.restoreAllMocks();
+});
+
+// Global test timeout (optional)
+jest.setTimeout(10000);
+
+// Suppress specific console warnings during tests (optional)
+const originalWarn = console.warn;
+const originalError = console.error;
+
+beforeAll(() => {
+   console.warn = jest.fn();
+   console.error = jest.fn();
+});
+
+afterAll(() => {
+   console.warn = originalWarn;
+   console.error = originalError;
 });
