@@ -1,62 +1,33 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { createAsyncStoragePersister } from "@tanstack/query-async-storage-persister";
-import { CACHE_CONFIG } from "./Cache";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { CACHE_CONFIG, queryClient } from "./Cache";
 import { UserPreferences } from "./Types";
 
 /**
- * Storage configuration constants
- * Key for React Query cache storage
- *
+ * Storage keys
  */
 export const CACHE_KEY = `pokemon-cache-${CACHE_CONFIG.VERSION}`;
-
-/** Keys for other stored data in AsyncStorage */
-const STORAGE_KEYS = {
-   USER_PREFERENCES: "user_preferences",
-} as const;
+const USER_PREFERENCES_KEY = "user_preferences";
 
 /**
- * AsyncStorage persister adapter for React Query cache,
- * configured with serialization, deserialization, and throttling.
+ * AsyncStorage persister for React Query - simplified configuration
  */
 export const asyncStoragePersister = createAsyncStoragePersister({
    storage: AsyncStorage,
    key: CACHE_KEY,
-   serialize: (data) => {
-      try {
-         return JSON.stringify(data);
-      } catch (error) {
-         console.warn("Cache serialization failed:", error);
-         return "{}";
-      }
-   },
-   deserialize: (data) => {
-      try {
-         return JSON.parse(data);
-      } catch (error) {
-         console.warn("Cache deserialization failed:", error);
-         return {};
-      }
-   },
    throttleTime: 1000,
 });
 
 /**
- * Storage utility methods for AsyncStorage data management.
+ * Simple storage utilities
  */
 export const storage = {
    /**
-    * Store a generic object in AsyncStorage under the given key.
-    * @template T
-    * @param {string} key - The key to store the data under.
-    * @param {T} data - The data object to serialize and store.
-    * @returns {Promise<void>}
-    * @throws Throws error if storing fails.
+    * Store any data
     */
    async store<T>(key: string, data: T): Promise<void> {
       try {
-         const serializedData = JSON.stringify(data);
-         await AsyncStorage.setItem(key, serializedData);
+         await AsyncStorage.setItem(key, JSON.stringify(data));
       } catch (error) {
          console.warn(`Failed to store data for key ${key}:`, error);
          throw new Error(`Storage failed for key: ${key}`);
@@ -64,15 +35,12 @@ export const storage = {
    },
 
    /**
-    * Retrieve a generic object from AsyncStorage by key.
-    * @template T
-    * @param {string} key - The key to retrieve data from.
-    * @returns {Promise<T | null>} Parsed object or null if not found/error.
+    * Retrieve any data
     */
    async retrieve<T>(key: string): Promise<T | null> {
       try {
-         const serializedData = await AsyncStorage.getItem(key);
-         return serializedData ? JSON.parse(serializedData) : null;
+         const data = await AsyncStorage.getItem(key);
+         return data ? JSON.parse(data) : null;
       } catch (error) {
          console.warn(`Failed to retrieve data for key ${key}:`, error);
          return null;
@@ -80,9 +48,7 @@ export const storage = {
    },
 
    /**
-    * Remove an item from AsyncStorage by key.
-    * @param {string} key - The key to remove.
-    * @returns {Promise<void>}
+    * Remove data
     */
    async remove(key: string): Promise<void> {
       try {
@@ -93,8 +59,7 @@ export const storage = {
    },
 
    /**
-    * Clear all AsyncStorage data.
-    * @returns {Promise<void>}
+    * Clear all storage
     */
    async clear(): Promise<void> {
       try {
@@ -105,28 +70,76 @@ export const storage = {
    },
 
    /**
-    * Store user preferences such as theme and language.
-    * @param {UserPreferences} preferences - The user preferences to store.
-    * @returns {Promise<void>}
+    * User preferences helpers
     */
    async storeUserPreferences(preferences: UserPreferences): Promise<void> {
-      await this.store(STORAGE_KEYS.USER_PREFERENCES, preferences);
+      await this.store(USER_PREFERENCES_KEY, preferences);
    },
 
-   /**
-    * Retrieve stored user preferences.
-    * Defaults to theme "auto" and language "en" if no preferences found.
-    * @returns {Promise<UserPreferences>} The user preferences object.
-    */
    async getUserPreferences(): Promise<UserPreferences> {
       const preferences = await this.retrieve<UserPreferences>(
-         STORAGE_KEYS.USER_PREFERENCES
+         USER_PREFERENCES_KEY
       );
-
       return {
          theme: "auto",
          language: "en",
          ...preferences,
       };
+   },
+};
+
+/**
+ * Simple cache migration utilities
+ */
+export const cacheMigration = {
+   /**
+    * Check if migration is needed
+    */
+   async needsMigration(): Promise<boolean> {
+      try {
+         const version = await AsyncStorage.getItem("pokemon-cache-version");
+         return version !== CACHE_CONFIG.VERSION;
+      } catch {
+         return true; // Assume migration needed if we can't read version
+      }
+   },
+
+   /**
+    * Simple migration - just clear old cache and set new version
+    */
+   async migrate(): Promise<void> {
+      if (await this.needsMigration()) {
+         console.log("Migrating cache to version", CACHE_CONFIG.VERSION);
+
+         try {
+            // Clear React Query cache
+            await queryClient.clear();
+
+            // Remove old cache keys
+            const allKeys = await AsyncStorage.getAllKeys();
+            const oldCacheKeys = allKeys.filter(
+               (key) => key.startsWith("pokemon-cache") && key !== CACHE_KEY
+            );
+
+            if (oldCacheKeys.length > 0) {
+               await AsyncStorage.multiRemove(oldCacheKeys);
+            }
+
+            // Set new version
+            await AsyncStorage.setItem(
+               "pokemon-cache-version",
+               CACHE_CONFIG.VERSION
+            );
+            console.log("Cache migration completed");
+         } catch (error) {
+            console.error("Cache migration failed, clearing all:", error);
+            // Fallback: clear everything
+            await AsyncStorage.clear();
+            await AsyncStorage.setItem(
+               "pokemon-cache-version",
+               CACHE_CONFIG.VERSION
+            );
+         }
+      }
    },
 };

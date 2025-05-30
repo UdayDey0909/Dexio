@@ -29,7 +29,6 @@ export interface SearchOptions {
 /**
  * User preferences interface stored in AsyncStorage.
  */
-
 export interface UserPreferences {
    theme?: "light" | "dark" | "auto";
    language?: string;
