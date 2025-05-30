@@ -1,11 +1,12 @@
-const { getDefaultConfig, mergeConfig } = require("@react-native/metro-config");
+// metro.config.js
+const { getDefaultConfig } = require("expo/metro-config");
 
-const config = {
-   resolver: {
-      alias: {
-         "@": "./src", // This makes @ point to the src directory
-      },
-   },
+/** @type {import('expo/metro-config').MetroConfig} */
+const config = getDefaultConfig(__dirname);
+
+// Add your alias configuration
+config.resolver.alias = {
+   "@": "./src", // This makes @ point to the src directory
 };
 
-module.exports = mergeConfig(getDefaultConfig(__dirname), config);
+module.exports = config;

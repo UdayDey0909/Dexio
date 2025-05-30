@@ -1,28 +1,29 @@
 // This file runs before the test environment is set up
 
-// Prevent window redefinition error by ensuring clean global state
-if (typeof global.window !== "undefined") {
-   delete global.window;
-}
-
-// Set up basic globals that React Native expects
+// Set up essential globals that React Native expects
 global.__DEV__ = true;
 global.__REACT_DEVTOOLS_GLOBAL_HOOK__ = {};
 global.__BUNDLE_START_TIME__ = Date.now();
 global.__EXPO_WEB__ = false;
 
-// Mock console methods to avoid noise in tests
+// Prevent window redefinition error by ensuring clean global state
+if (typeof global.window !== "undefined") {
+   delete global.window;
+}
+
+// Setup fetch polyfill for React Native environment
+if (typeof global.fetch === "undefined") {
+   global.fetch = require("node-fetch");
+}
+
+// Basic console setup (will be overridden in setup.ts if needed)
 const originalConsole = console;
 global.console = {
    ...originalConsole,
-   warn: jest.fn(),
-   error: jest.fn(),
-   log: jest.fn(),
-   info: jest.fn(),
-   debug: jest.fn(),
+   // Keep original methods but can be mocked later
+   warn: originalConsole.warn,
+   error: originalConsole.error,
+   log: originalConsole.log,
+   info: originalConsole.info,
+   debug: originalConsole.debug,
 };
-
-// Ensure timers are clean
-if (typeof jest !== "undefined") {
-   jest.useFakeTimers();
-}

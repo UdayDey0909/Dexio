@@ -109,10 +109,10 @@ afterEach(() => {
    jest.restoreAllMocks();
 });
 
-// Global test timeout (optional)
+// Global test timeout
 jest.setTimeout(10000);
 
-// Suppress specific console warnings during tests (optional)
+// Mock console methods to reduce test noise
 const originalWarn = console.warn;
 const originalError = console.error;
 

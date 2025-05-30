@@ -29,8 +29,8 @@ module.exports = {
    },
    // Use React Native environment instead of jsdom to avoid window conflicts
    testEnvironment: "react-native",
-   // Fixed: Use correct property name
-   moduleNameMapping: {
+   // Fixed: Use correct property name (was moduleNameMapping)
+   moduleNameMapper: {
       "^@/(.*)$": "<rootDir>/src/$1",
    },
    // Globals for React Native testing
@@ -40,8 +40,8 @@ module.exports = {
       __BUNDLE_START_TIME__: 0,
       __EXPO_WEB__: false,
    },
-   // Clear setup to prevent conflicts
-   setupFiles: [],
+   // Setup files for initial Jest setup (before environment)
+   setupFiles: ["<rootDir>/src/__tests__/jest-setup.js"],
    // Timeouts
    testTimeout: 10000,
    // Force exit to prevent hanging
