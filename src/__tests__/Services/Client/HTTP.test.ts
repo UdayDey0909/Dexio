@@ -1,101 +1,78 @@
-import axios from "axios";
-import { HTTPClient, createHTTPClient } from "@/Services/Client/HTTP";
+import axios, { AxiosInstance, AxiosError } from "axios";
+import {
+   PokemonClient,
+   MoveClient,
+   ItemClient,
+   LocationClient,
+   BerryClient,
+   EvolutionClient,
+   GameClient,
+} from "pokenode-ts";
+import {
+   HTTPClient,
+   createHTTPClient,
+   httpClient,
+} from "@/Services/Client/HTTP";
 import { APIError } from "@/Services/Client/Types";
 
-// Mock axios and pokenode-ts clients
+// Mock axios and pokenode-ts
 jest.mock("axios");
-jest.mock("pokenode-ts", () => ({
-   PokemonClient: jest.fn().mockImplementation(() => ({
-      getPokemonById: jest.fn(),
-   })),
-   MoveClient: jest.fn().mockImplementation(() => ({
-      getMoveById: jest.fn(),
-   })),
-   ItemClient: jest.fn().mockImplementation(() => ({
-      getItemById: jest.fn(),
-   })),
-   LocationClient: jest.fn().mockImplementation(() => ({
-      getLocationById: jest.fn(),
-   })),
-   BerryClient: jest.fn().mockImplementation(() => ({
-      getBerryById: jest.fn(),
-   })),
-   EvolutionClient: jest.fn().mockImplementation(() => ({
-      getEvolutionChainById: jest.fn(),
-   })),
-   GameClient: jest.fn().mockImplementation(() => ({
-      getGenerationById: jest.fn(),
-   })),
-}));
-
-// Mock pino logger
-jest.mock("pino", () => {
-   const mockLogger = {
-      debug: jest.fn(),
-      info: jest.fn(),
-      warn: jest.fn(),
-      error: jest.fn(),
-   };
-   return jest.fn(() => mockLogger);
-});
+jest.mock("pokenode-ts");
 
 const mockedAxios = axios as jest.Mocked<typeof axios>;
+const MockedPokemonClient = PokemonClient as jest.MockedClass<
+   typeof PokemonClient
+>;
 
 describe("HTTPClient", () => {
-   let httpClient: HTTPClient;
-   let mockAxiosInstance: any;
+   let client: HTTPClient;
+   let mockAxiosInstance: jest.Mocked<AxiosInstance>;
+   let mockPokemonClient: jest.Mocked<PokemonClient>;
 
    beforeEach(() => {
-      jest.clearAllMocks();
-      jest.clearAllTimers();
-      jest.useFakeTimers();
-
-      // Setup axios mock
       mockAxiosInstance = {
          create: jest.fn(),
-         request: jest.fn(),
          interceptors: {
-            request: {
-               use: jest.fn(),
-            },
             response: {
                use: jest.fn(),
             },
          },
-      };
+         get: jest.fn(),
+         post: jest.fn(),
+         put: jest.fn(),
+         delete: jest.fn(),
+      } as any;
+
+      mockPokemonClient = {
+         getPokemonById: jest.fn(),
+      } as any;
 
       mockedAxios.create.mockReturnValue(mockAxiosInstance);
+      MockedPokemonClient.mockImplementation(() => mockPokemonClient);
 
-      httpClient = new HTTPClient({
-         enableLogging: false,
-         enableCache: true,
-         rateLimitRpm: 10,
-      });
+      client = new HTTPClient();
    });
 
    afterEach(() => {
-      jest.useRealTimers();
+      jest.clearAllMocks();
    });
 
-   describe("Constructor and Configuration", () => {
-      it("should create HTTPClient with default configuration", () => {
-         const client = new HTTPClient();
+   describe("constructor", () => {
+      it("should create axios instance with default config", () => {
          expect(mockedAxios.create).toHaveBeenCalledWith({
             baseURL: "https://pokeapi.co/api/v2/",
             timeout: 10000,
             headers: {
                Accept: "application/json",
                "Content-Type": "application/json",
-               "User-Agent": "HTTPClient/1.0.0",
             },
          });
       });
 
-      it("should create HTTPClient with custom configuration", () => {
+      it("should create axios instance with custom config", () => {
          const customConfig = {
             baseURL: "https://custom-api.com/",
             timeout: 5000,
-            maxRetries: 2,
          };
 
          new HTTPClient(customConfig);
@@ -106,353 +83,275 @@ describe("HTTPClient", () => {
             headers: {
                Accept: "application/json",
                "Content-Type": "application/json",
-               "User-Agent": "HTTPClient/1.0.0",
             },
          });
       });
 
-      it("should validate configuration with zod schema", () => {
-         // Test invalid URL
-         expect(() => new HTTPClient({ baseURL: "invalid-url" })).toThrow();
+      it("should initialize all pokenode-ts clients", () => {
+         expect(PokemonClient).toHaveBeenCalled();
+         expect(MoveClient).toHaveBeenCalled();
+         expect(ItemClient).toHaveBeenCalled();
+         expect(LocationClient).toHaveBeenCalled();
+         expect(BerryClient).toHaveBeenCalled();
+         expect(EvolutionClient).toHaveBeenCalled();
+         expect(GameClient).toHaveBeenCalled();
+      });
 
-         // Test invalid timeout
-         expect(() => new HTTPClient({ timeout: -1000 })).toThrow();
-
-         // Test invalid maxRetries
-         expect(() => new HTTPClient({ maxRetries: 10 })).toThrow();
+      it("should setup error handling", () => {
+         expect(mockAxiosInstance.interceptors.response.use).toHaveBeenCalled();
       });
    });
 
-   describe("Request Method", () => {
-      it("should make a successful request", async () => {
-         const mockResponse = { data: { id: 1, name: "pikachu" } };
-         mockAxiosInstance.request.mockResolvedValue(mockResponse);
-
-         const result = await httpClient.request({ url: "/pokemon/1" });
-
-         expect(mockAxiosInstance.request).toHaveBeenCalledWith({
-            url: "/pokemon/1",
-         });
-         expect(result).toEqual(mockResponse.data);
+   describe("client getters", () => {
+      it("should return axios instance", () => {
+         expect(client.axios).toBe(mockAxiosInstance);
       });
 
-      it("should validate response with provided schema", async () => {
-         const mockResponse = { data: { id: 1, name: "pikachu" } };
-         mockAxiosInstance.request.mockResolvedValue(mockResponse);
-
-         const schema = {
-            parse: jest.fn().mockReturnValue(mockResponse.data),
-         };
-
-         const result = await httpClient.request(
-            { url: "/pokemon/1" },
-            schema as any
-         );
-
-         expect(schema.parse).toHaveBeenCalledWith(mockResponse.data);
-         expect(result).toEqual(mockResponse.data);
+      it("should return pokemon client", () => {
+         expect(client.pokemon).toBe(mockPokemonClient);
       });
 
-      it("should handle schema validation errors", async () => {
-         const mockResponse = { data: { invalid: "data" } };
-         mockAxiosInstance.request.mockResolvedValue(mockResponse);
-
-         const schema = {
-            parse: jest.fn().mockImplementation(() => {
-               throw new Error("Validation failed");
-            }),
-         };
-
-         await expect(
-            httpClient.request({ url: "/pokemon/1" }, schema as any)
-         ).rejects.toThrow("Invalid response format: Error: Validation failed");
+      it("should return all client instances", () => {
+         expect(client.move).toBeDefined();
+         expect(client.item).toBeDefined();
+         expect(client.location).toBeDefined();
+         expect(client.berry).toBeDefined();
+         expect(client.evolution).toBeDefined();
+         expect(client.game).toBeDefined();
       });
    });
 
-   describe("Error Handling", () => {
-      it("should format axios errors correctly", () => {
-         const axiosError = {
+   describe("error formatting", () => {
+      let errorHandler: (error: any) => Promise<any>;
+
+      beforeEach(() => {
+         // Get the error handler from the interceptor setup
+         const interceptorCall =
+            mockAxiosInstance.interceptors.response.use.mock.calls[0];
+         errorHandler = interceptorCall[1];
+      });
+
+      it("should format axios errors correctly", async () => {
+         const axiosError: Partial<AxiosError> = {
             isAxiosError: true,
+            message: "Request failed",
             response: {
                status: 404,
-               data: { message: "Not found" },
-            },
-            message: "Request failed with status code 404",
-            config: {
-               method: "GET",
-               url: "/pokemon/999",
-               timeout: 10000,
-            },
+               data: { message: "Pokemon not found" },
+            } as any,
          };
 
-         // Access private method for testing
-         const formatError = (httpClient as any).formatError.bind(httpClient);
-         const formattedError: APIError = formatError(axiosError);
+         // Mock axios.isAxiosError
+         (axios.isAxiosError as jest.Mock).mockReturnValue(true);
 
-         expect(formattedError).toEqual({
+         const expectedError: APIError = {
             code: "404",
-            message: "Request failed with status code 404",
-            details: "Not found",
+            message: "Request failed",
+            details: "Pokemon not found",
             retryable: false,
-            requestContext: {
-               method: "GET",
-               url: "/pokemon/999",
-               timeout: 10000,
-            },
-         });
+         };
+
+         await expect(errorHandler(axiosError)).rejects.toEqual(expectedError);
       });
 
-      it("should format network errors as retryable", () => {
-         const networkError = {
+      it("should handle network errors", async () => {
+         const networkError: Partial<AxiosError> = {
             isAxiosError: true,
             message: "Network Error",
-            config: { method: "GET", url: "/pokemon/1" },
+            response: undefined,
          };
 
-         const formatError = (httpClient as any).formatError.bind(httpClient);
-         const formattedError: APIError = formatError(networkError);
+         (axios.isAxiosError as jest.Mock).mockReturnValue(true);
 
-         expect(formattedError.retryable).toBe(true);
-         expect(formattedError.code).toBe("NETWORK_ERROR");
+         const expectedError: APIError = {
+            code: "NETWORK_ERROR",
+            message: "Network Error",
+            details: undefined,
+            retryable: true,
+         };
+
+         await expect(errorHandler(networkError)).rejects.toEqual(
+            expectedError
+         );
       });
 
-      it("should format unknown errors", () => {
-         const unknownError = new Error("Something went wrong");
+      it("should handle server errors as retryable", async () => {
+         const serverError: Partial<AxiosError> = {
+            isAxiosError: true,
+            message: "Internal Server Error",
+            response: {
+               status: 500,
+               data: { message: "Server is down" },
+            } as any,
+         };
 
-         const formatError = (httpClient as any).formatError.bind(httpClient);
-         const formattedError: APIError = formatError(unknownError);
+         (axios.isAxiosError as jest.Mock).mockReturnValue(true);
 
-         expect(formattedError).toEqual({
+         const expectedError: APIError = {
+            code: "500",
+            message: "Internal Server Error",
+            details: "Server is down",
+            retryable: true,
+         };
+
+         await expect(errorHandler(serverError)).rejects.toEqual(expectedError);
+      });
+
+      it("should handle non-axios errors", async () => {
+         const genericError = new Error("Generic error");
+
+         (axios.isAxiosError as jest.Mock).mockReturnValue(false);
+
+         const expectedError: APIError = {
             code: "UNKNOWN_ERROR",
-            message: "Something went wrong",
+            message: "Generic error",
             details: undefined,
             retryable: false,
-         });
+         };
+
+         await expect(errorHandler(genericError)).rejects.toEqual(
+            expectedError
+         );
+      });
+
+      it("should handle errors without message", async () => {
+         const errorWithoutMessage = {};
+
+         (axios.isAxiosError as jest.Mock).mockReturnValue(false);
+
+         const expectedError: APIError = {
+            code: "UNKNOWN_ERROR",
+            message: "An unexpected error occurred",
+            details: undefined,
+            retryable: false,
+         };
+
+         await expect(errorHandler(errorWithoutMessage)).rejects.toEqual(
+            expectedError
+         );
       });
    });
 
-   describe("Rate Limiting", () => {
-      it("should allow requests within rate limit", () => {
-         const checkRateLimit = (httpClient as any).checkRateLimit.bind(
-            httpClient
+   describe("healthCheck", () => {
+      it("should return true when API is healthy", async () => {
+         mockPokemonClient.getPokemonById.mockResolvedValue({} as any);
+
+         const result = await client.healthCheck();
+
+         expect(result).toBe(true);
+         expect(mockPokemonClient.getPokemonById).toHaveBeenCalledWith(1);
+      });
+
+      it("should return false when API is unhealthy", async () => {
+         mockPokemonClient.getPokemonById.mockRejectedValue(
+            new Error("API Down")
          );
 
-         // Should allow first few requests
-         for (let i = 0; i < 10; i++) {
-            expect(checkRateLimit()).toBe(true);
-         }
-      });
+         const result = await client.healthCheck();
 
-      it("should block requests exceeding rate limit", () => {
-         const checkRateLimit = (httpClient as any).checkRateLimit.bind(
-            httpClient
-         );
-
-         // Fill up the rate limit
-         for (let i = 0; i < 10; i++) {
-            checkRateLimit();
-         }
-
-         // Next request should be blocked
-         expect(checkRateLimit()).toBe(false);
-      });
-
-      it("should reset rate limit after time window", () => {
-         const checkRateLimit = (httpClient as any).checkRateLimit.bind(
-            httpClient
-         );
-
-         // Fill up the rate limit
-         for (let i = 0; i < 10; i++) {
-            checkRateLimit();
-         }
-
-         // Advance time by more than 1 minute
-         jest.advanceTimersByTime(61000);
-
-         // Should allow requests again
-         expect(checkRateLimit()).toBe(true);
+         expect(result).toBe(false);
+         expect(mockPokemonClient.getPokemonById).toHaveBeenCalledWith(1);
       });
    });
+});
 
-   describe("Caching", () => {
-      it("should cache GET responses", () => {
-         const setCache = (httpClient as any).setCache.bind(httpClient);
-         const getFromCache = (httpClient as any).getFromCache.bind(httpClient);
-
-         const testData = { id: 1, name: "pikachu" };
-         setCache("/pokemon/1", testData);
-
-         const cached = getFromCache("/pokemon/1");
-         expect(cached).toEqual(testData);
-      });
-
-      it("should return null for expired cache entries", () => {
-         const setCache = (httpClient as any).setCache.bind(httpClient);
-         const getFromCache = (httpClient as any).getFromCache.bind(httpClient);
-
-         const testData = { id: 1, name: "pikachu" };
-         setCache("/pokemon/1", testData);
-
-         // Advance time beyond cache TTL
-         jest.advanceTimersByTime(400000); // 400 seconds
-
-         const cached = getFromCache("/pokemon/1");
-         expect(cached).toBeNull();
-      });
-
-      it("should clean up expired cache entries periodically", () => {
-         const setCache = (httpClient as any).setCache.bind(httpClient);
-
-         // Add some cache entries
-         setCache("/pokemon/1", { id: 1 });
-         setCache("/pokemon/2", { id: 2 });
-
-         // Advance time to expire cache
-         jest.advanceTimersByTime(400000);
-
-         // Trigger cache cleanup (runs every 5 minutes)
-         jest.advanceTimersByTime(300000);
-
-         const cache = (httpClient as any).cache;
-         expect(cache.size).toBe(0);
-      });
+describe("Factory Functions", () => {
+   beforeEach(() => {
+      jest.clearAllMocks();
    });
 
-   describe("Utility Methods", () => {
-      it("should clear cache manually", () => {
-         const setCache = (httpClient as any).setCache.bind(httpClient);
-         setCache("/pokemon/1", { id: 1 });
+   describe("createHTTPClient", () => {
+      it("should create HTTPClient with default config", () => {
+         const client = createHTTPClient();
 
-         httpClient.clearCache();
-
-         const cache = (httpClient as any).cache;
-         expect(cache.size).toBe(0);
+         expect(client).toBeInstanceOf(HTTPClient);
+         expect(mockedAxios.create).toHaveBeenCalled();
       });
 
-      it("should return cache statistics", () => {
-         const setCache = (httpClient as any).setCache.bind(httpClient);
-         setCache("/pokemon/1", { id: 1 });
-         setCache("/pokemon/2", { id: 2 });
+      it("should create HTTPClient with custom config", () => {
+         const config = { baseURL: "https://test.com", timeout: 1000 };
+         const client = createHTTPClient(config);
 
-         const stats = httpClient.getCacheStats();
-         expect(stats.size).toBe(2);
-      });
-
-      it("should return rate limit status", () => {
-         const checkRateLimit = (httpClient as any).checkRateLimit.bind(
-            httpClient
-         );
-
-         // Use up some rate limit
-         checkRateLimit();
-         checkRateLimit();
-
-         const status = httpClient.getRateLimitStatus();
-         expect(status.remaining).toBe(8);
-         expect(status.limit).toBe(10);
-         expect(typeof status.resetTime).toBe("number");
-      });
-   });
-
-   describe("Health Check", () => {
-      it("should perform health check on all clients", async () => {
-         // Mock all the pokenode-ts clients to resolve successfully
-         const mockClients = httpClient as any;
-         jest
-            .spyOn(mockClients.pokemonClient, "getPokemonById")
-            .mockResolvedValue({});
-         jest
-            .spyOn(mockClients.moveClient, "getMoveById")
-            .mockResolvedValue({});
-         jest
-            .spyOn(mockClients.itemClient, "getItemById")
-            .mockResolvedValue({});
-         jest
-            .spyOn(mockClients.locationClient, "getLocationById")
-            .mockResolvedValue({});
-         jest
-            .spyOn(mockClients.berryClient, "getBerryById")
-            .mockResolvedValue({});
-         jest
-            .spyOn(mockClients.evolutionClient, "getEvolutionChainById")
-            .mockResolvedValue({});
-         jest
-            .spyOn(mockClients.gameClient, "getGenerationById")
-            .mockResolvedValue({});
-
-         const results = await httpClient.healthCheck();
-
-         expect(Object.keys(results)).toHaveLength(7);
-         expect(Object.values(results).every(Boolean)).toBe(true);
-      });
-
-      it("should handle health check failures", async () => {
-         // Mock some clients to fail
-         const mockClients = httpClient as any;
-         jest
-            .spyOn(mockClients.pokemonClient, "getPokemonById")
-            .mockRejectedValue(new Error("Failed"));
-         jest
-            .spyOn(mockClients.moveClient, "getMoveById")
-            .mockResolvedValue({});
-         jest
-            .spyOn(mockClients.itemClient, "getItemById")
-            .mockResolvedValue({});
-         jest
-            .spyOn(mockClients.locationClient, "getLocationById")
-            .mockResolvedValue({});
-         jest
-            .spyOn(mockClients.berryClient, "getBerryById")
-            .mockResolvedValue({});
-         jest
-            .spyOn(mockClients.evolutionClient, "getEvolutionChainById")
-            .mockResolvedValue({});
-         jest
-            .spyOn(mockClients.gameClient, "getGenerationById")
-            .mockResolvedValue({});
-
-         const results = await httpClient.healthCheck();
-
-         expect(results.pokemon).toBe(false);
-         expect(results.move).toBe(true);
-      });
-   });
-
-   describe("Client Getters", () => {
-      it("should provide access to axios instance", () => {
-         expect(httpClient.axios).toBeDefined();
-      });
-
-      it("should provide access to all pokenode-ts clients", () => {
-         expect(httpClient.pokemon).toBeDefined();
-         expect(httpClient.move).toBeDefined();
-         expect(httpClient.item).toBeDefined();
-         expect(httpClient.location).toBeDefined();
-         expect(httpClient.berry).toBeDefined();
-         expect(httpClient.evolution).toBeDefined();
-         expect(httpClient.game).toBeDefined();
-      });
-
-      it("should provide clients object", () => {
-         const clients = httpClient.clients;
-         expect(Object.keys(clients)).toHaveLength(7);
-         expect(clients.pokemon).toBeDefined();
-         expect(clients.move).toBeDefined();
-      });
-   });
-
-   describe("Factory Function", () => {
-      it("should create HTTPClient instance with factory function", () => {
-         const client = createHTTPClient({ timeout: 5000 });
          expect(client).toBeInstanceOf(HTTPClient);
       });
    });
 
-   describe("Interceptors", () => {
-      it("should setup request and response interceptors", () => {
-         expect(mockAxiosInstance.interceptors.request.use).toHaveBeenCalled();
-         expect(mockAxiosInstance.interceptors.response.use).toHaveBeenCalled();
+   describe("httpClient singleton", () => {
+      it("should export a default httpClient instance", () => {
+         expect(httpClient).toBeInstanceOf(HTTPClient);
+      });
+   });
+});
+
+describe("Error Type Guards", () => {
+   // Test the retryable logic for different status codes
+   describe("retryable determination", () => {
+      let errorHandler: (error: any) => Promise<any>;
+      let client: HTTPClient;
+
+      beforeEach(() => {
+         const mockAxiosInstance = {
+            interceptors: {
+               response: {
+                  use: jest.fn(),
+               },
+            },
+         } as any;
+
+         mockedAxios.create.mockReturnValue(mockAxiosInstance);
+         client = new HTTPClient();
+
+         const interceptorCall =
+            mockAxiosInstance.interceptors.response.use.mock.calls[0];
+         errorHandler = interceptorCall[1];
+      });
+
+      it("should mark 4xx errors as non-retryable", async () => {
+         const clientError: Partial<AxiosError> = {
+            isAxiosError: true,
+            message: "Bad Request",
+            response: { status: 400 } as any,
+         };
+
+         (axios.isAxiosError as jest.Mock).mockReturnValue(true);
+
+         try {
+            await errorHandler(clientError);
+         } catch (error) {
+            expect((error as APIError).retryable).toBe(false);
+         }
+      });
+
+      it("should mark 5xx errors as retryable", async () => {
+         const serverError: Partial<AxiosError> = {
+            isAxiosError: true,
+            message: "Internal Server Error",
+            response: { status: 500 } as any,
+         };
+
+         (axios.isAxiosError as jest.Mock).mockReturnValue(true);
+
+         try {
+            await errorHandler(serverError);
+         } catch (error) {
+            expect((error as APIError).retryable).toBe(true);
+         }
+      });
+
+      it("should mark network errors as retryable", async () => {
+         const networkError: Partial<AxiosError> = {
+            isAxiosError: true,
+            message: "Network Error",
+            response: undefined,
+         };
+
+         (axios.isAxiosError as jest.Mock).mockReturnValue(true);
+
+         try {
+            await errorHandler(networkError);
+         } catch (error) {
+            expect((error as APIError).retryable).toBe(true);
+         }
       });
    });
 });

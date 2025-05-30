@@ -1,6 +1,5 @@
-// jest.config.js
 module.exports = {
-   preset: "react-native",
+   preset: "jest-expo",
    setupFilesAfterEnv: ["<rootDir>/src/__tests__/setup.ts"],
    testMatch: [
       "**/__tests__/**/*.(test|spec).(js|jsx|ts|tsx)",
@@ -11,7 +10,7 @@ module.exports = {
       "^.+\\.(js|jsx|ts|tsx)$": "babel-jest",
    },
    transformIgnorePatterns: [
-      "node_modules/(?!(react-native|@react-native|@tanstack|pokenode-ts)/)",
+      "node_modules/(?!(react-native|@react-native|@react-navigation|expo|@expo|@tanstack|pokenode-ts|react-native-vector-icons|react-native-linear-gradient|react-native-mmkv|react-native-orientation-locker|react-native-reanimated|react-native-svg)/)",
    ],
    collectCoverageFrom: [
       "src/**/*.{ts,tsx}",
@@ -28,52 +27,12 @@ module.exports = {
          statements: 80,
       },
    },
-   testEnvironment: "node",
+   testEnvironment: "jsdom",
    moduleNameMapping: {
       "^@/(.*)$": "<rootDir>/src/$1",
    },
+   // Add globals for React Native testing
+   globals: {
+      __DEV__: true,
+   },
 };
-
-// src/__tests__/setup.ts
-import "react-native-gesture-handler/jestSetup";
-
-// Mock React Native modules that aren't available in Jest
-jest.mock("react-native/Libraries/EventEmitter/NativeEventEmitter");
-
-// Mock AsyncStorage
-jest.mock("@react-native-async-storage/async-storage", () =>
-   require("@react-native-async-storage/async-storage/jest/async-storage-mock")
-);
-
-// Mock console methods for cleaner test output
-global.console = {
-   ...console,
-   warn: jest.fn(),
-   error: jest.fn(),
-   log: jest.fn(),
-};
-
-// Silence React Query dev tools warning
-global.__DEV__ = false;
-
-// Mock timers for testing
-beforeEach(() => {
-   jest.clearAllTimers();
-});
-
-// package.json test scripts section
-/*
-{
-  "scripts": {
-    "test": "jest",
-    "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage",
-    "test:ci": "jest --ci --coverage --watchAll=false"
-  },
-  "devDependencies": {
-    "@types/jest": "^29.5.0",
-    "jest": "^29.5.0",
-    "babel-jest": "^29.5.0"
-  }
-}
-*/
