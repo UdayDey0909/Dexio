@@ -2,27 +2,61 @@ import { QueryClient } from "@tanstack/react-query";
 import { APIError, SearchOptions, PokemonFilters } from "./Types";
 
 /**
- * Simplified cache configuration
+ * @module Cache
+ * Provides cache configuration, key factories, a query client instance,
+ * and utility methods for managing cached Pokémon-related data.
+ */
+
+/**
+ * Centralized cache configuration for query behaviors.
+ *
+ * @constant
+ * @property {string} VERSION - Used for cache versioning and invalidation across app updates.
+ * @property {number} STALE_TIME - Time in ms before data is considered stale.
+ * @property {number} CACHE_TIME - Time in ms before unused data is garbage collected.
+ * @property {number} RETRY_COUNT - Maximum retry attempts for failed queries.
  */
 export const CACHE_CONFIG = {
    VERSION: "v1.2",
-   STALE_TIME: 15 * 60 * 1000, // 15 minutes
-   CACHE_TIME: 30 * 60 * 1000, // 30 minutes
+   STALE_TIME: 15 * 60 * 1000,
+   CACHE_TIME: 30 * 60 * 1000,
    RETRY_COUNT: 2,
 } as const;
 
 /**
- * Simple cache key factory - no over-engineering
+ * Factory object for generating stable cache keys for various resources.
+ *
+ * @constant
  */
 export const cacheKeys = {
    pokemon: {
+      /** Key for all Pokémon resources */
       all: ["pokemon", CACHE_CONFIG.VERSION] as const,
+
+      /**
+       * Key for list of Pokémon with optional filters.
+       * @param {PokemonFilters} [filters]
+       * @returns {readonly any[]} Cache key
+       */
       list: (filters?: PokemonFilters) =>
          filters
             ? (["pokemon", CACHE_CONFIG.VERSION, "list", filters] as const)
             : (["pokemon", CACHE_CONFIG.VERSION, "list"] as const),
+
+      /**
+       * Key for individual Pokémon details.
+       * @param {number|string} id - Pokémon ID
+       * @returns {readonly any[]} Cache key
+       */
       detail: (id: number | string) =>
          ["pokemon", CACHE_CONFIG.VERSION, "detail", String(id)] as const,
+
+      /**
+       * Key for Pokémon search queries.
+       * @param {string} query - Search string
+       * @param {number} [limit] - Result limit
+       * @returns {readonly any[]} Cache key
+       */
       search: (query: string, limit?: number) =>
          [
             "pokemon",
@@ -33,27 +67,53 @@ export const cacheKeys = {
          ] as const,
    },
 
-   // Basic resource keys
    types: {
+      /** Key for all types */
       all: ["types", CACHE_CONFIG.VERSION] as const,
+
+      /**
+       * Key for type list.
+       * @returns {readonly any[]} Cache key
+       */
       list: () => ["types", CACHE_CONFIG.VERSION, "list"] as const,
+
+      /**
+       * Key for individual type detail.
+       * @param {number|string} id - Type ID or name
+       * @returns {readonly any[]} Cache key
+       */
       detail: (id: number | string) =>
          ["types", CACHE_CONFIG.VERSION, "detail", String(id)] as const,
    },
 
    moves: {
+      /** Key for all moves */
       all: ["moves", CACHE_CONFIG.VERSION] as const,
+
+      /**
+       * Key for move list.
+       * @returns {readonly any[]} Cache key
+       */
       list: () => ["moves", CACHE_CONFIG.VERSION, "list"] as const,
+
+      /**
+       * Key for move detail.
+       * @param {number|string} id - Move ID
+       * @returns {readonly any[]} Cache key
+       */
       detail: (id: number | string) =>
          ["moves", CACHE_CONFIG.VERSION, "detail", String(id)] as const,
    },
 
-   // User preferences
+   /** Key for user preferences */
    preferences: ["preferences", CACHE_CONFIG.VERSION] as const,
 } as const;
 
 /**
- * Simple error type guard
+ * Type guard to check if an object is an APIError.
+ *
+ * @param {unknown} error - Error object to validate
+ * @returns {error is APIError} Whether the error is an APIError
  */
 const isAPIError = (error: unknown): error is APIError => {
    return (
@@ -65,30 +125,32 @@ const isAPIError = (error: unknown): error is APIError => {
 };
 
 /**
- * Simple retry function - no complex logic needed
+ * Retry logic for failed queries.
+ *
+ * @param {number} failureCount - Current retry attempt
+ * @param {unknown} error - The error encountered
+ * @returns {boolean} Whether to retry the request
  */
 const shouldRetry = (failureCount: number, error: unknown) => {
-   // Don't retry client errors (4xx)
    if (isAPIError(error)) {
       const statusCode = parseInt(error.code);
       if (statusCode >= 400 && statusCode < 500) {
-         return false;
+         return false; // Do not retry on client-side errors
       }
    }
-
-   // Retry up to max attempts for server errors
    return failureCount < CACHE_CONFIG.RETRY_COUNT;
 };
 
 /**
- * React Query client with essential configuration only
- * Using both cacheTime and gcTime for compatibility
+ * A preconfigured React Query client with cache and retry settings.
+ *
+ * @constant
  */
 export const queryClient = new QueryClient({
    defaultOptions: {
       queries: {
          staleTime: CACHE_CONFIG.STALE_TIME,
-         gcTime: CACHE_CONFIG.CACHE_TIME, // For newer versions
+         gcTime: CACHE_CONFIG.CACHE_TIME,
          retry: shouldRetry,
          refetchOnWindowFocus: false,
          refetchOnReconnect: true,
@@ -103,49 +165,68 @@ export const queryClient = new QueryClient({
 });
 
 /**
- * Essential cache utilities - removed over-engineering
- * Added compatibility checks for different React Query versions
+ * Utility methods for interacting with the cache.
+ *
+ * @namespace
  */
 export const cacheUtils = {
    /**
-    * Invalidate all Pokemon queries
+    * Invalidate all Pokémon cache entries.
+    * @function
+    * @returns {Promise<void>}
     */
    invalidatePokemon: () =>
       queryClient.invalidateQueries({ queryKey: cacheKeys.pokemon.all }),
 
    /**
-    * Invalidate specific Pokemon
+    * Invalidate cache for a specific Pokémon.
+    * @function
+    * @param {number|string} id - Pokémon ID
+    * @returns {Promise<void>}
     */
    invalidatePokemonDetail: (id: number | string) =>
       queryClient.invalidateQueries({ queryKey: cacheKeys.pokemon.detail(id) }),
 
    /**
-    * Get cached Pokemon data
+    * Retrieve Pokémon data from cache.
+    * @function
+    * @template T
+    * @param {number|string} id - Pokémon ID
+    * @returns {T | undefined} Cached data if available
     */
    getCachedPokemon: <T = any>(id: number | string): T | undefined =>
       queryClient.getQueryData(cacheKeys.pokemon.detail(id)),
 
    /**
-    * Set Pokemon data in cache
+    * Manually set Pokémon data into cache.
+    * @function
+    * @template T
+    * @param {number|string} id - Pokémon ID
+    * @param {T} data - Data to store
+    * @returns {void}
     */
    setCachedPokemon: <T = any>(id: number | string, data: T) =>
       queryClient.setQueryData(cacheKeys.pokemon.detail(id), data),
 
    /**
-    * Clear all cache
+    * Clears the entire client-side cache.
+    * @function
+    * @returns {void}
     */
    clearAll: () => queryClient.clear(),
 
    /**
-    * Prefetch common data (optional performance boost)
+    * Prefetch common data (e.g., Pokémon types) to warm up the cache.
+    * @async
+    * @function
+    * @returns {Promise<void>}
     */
    prefetchCommon: async () => {
       try {
          await queryClient.prefetchQuery({
             queryKey: cacheKeys.types.list(),
             queryFn: async () => {
-               // This would typically call your API
-               // For now, return empty array to prevent the test from failing
+               // Placeholder for real fetch logic
                return [];
             },
          });
