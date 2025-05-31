@@ -1,6 +1,6 @@
-import { cacheKeys, CACHE_CONFIG } from "../Client/Cache";
+import { cacheKeys, CACHE_CONFIG } from "../Shared/Cache";
 import { NamedAPIResource } from "../Interface/Common";
-import { SearchOptions } from "../Client/Types";
+import { SearchOptions } from "../Shared/Types";
 import {
    Berry,
    BerryFirmness,

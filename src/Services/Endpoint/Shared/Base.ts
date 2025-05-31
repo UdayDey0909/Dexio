@@ -1,5 +1,5 @@
 import { httpClient } from "../../Client/HTTP";
-import { APIError } from "../../Client/Types";
+import { APIError } from "../../Shared/Types";
 import { AxiosResponse } from "axios";
 
 // Configuration constants

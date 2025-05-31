@@ -1,5 +1,5 @@
 import { BaseEndpoint, DEFAULT_SEARCH_LIMIT } from "./Shared/Base";
-import { PokemonFilters, SearchOptions } from "../Client/Types";
+import { PokemonFilters, SearchOptions } from "../Shared/Types";
 import {
    Pokemon,
    PokemonSpecies,

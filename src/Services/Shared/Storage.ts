@@ -1,6 +1,6 @@
 import { createAsyncStoragePersister } from "@tanstack/query-async-storage-persister";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { CACHE_CONFIG, queryClient } from "./Cache";
+import { CACHE_CONFIG, queryClient } from "../Shared/Cache";
 import { UserPreferences } from "./Types";
 
 /**

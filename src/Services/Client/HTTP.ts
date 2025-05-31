@@ -1,3 +1,4 @@
+// src/Services/Client/HTTP.ts
 import axios, { AxiosInstance, isAxiosError } from "axios";
 import {
    PokemonClient,
@@ -8,125 +9,125 @@ import {
    EvolutionClient,
    GameClient,
 } from "pokenode-ts";
-import { APIError } from "./Types";
+import { APIError, HTTPConfig } from "./Types";
 
 /**
- * Simple HTTP client configuration
+ * Simplified HTTP client for solo development
  */
-interface HTTPClientConfig {
-   baseURL?: string;
-   timeout?: number;
-}
-
-/**
- * Simplified HTTPClient - removes over-engineering while keeping essential features
- */
-export class HTTPClient {
+export class HTTP {
    private readonly axiosInstance: AxiosInstance;
-   private readonly pokemonClient: PokemonClient;
-   private readonly moveClient: MoveClient;
-   private readonly itemClient: ItemClient;
-   private readonly locationClient: LocationClient;
-   private readonly berryClient: BerryClient;
-   private readonly evolutionClient: EvolutionClient;
-   private readonly gameClient: GameClient;
+   private readonly enableLogging: boolean;
 
-   constructor(config: HTTPClientConfig = {}) {
+   // PokeAPI clients
+   public readonly pokemon: PokemonClient;
+   public readonly move: MoveClient;
+   public readonly item: ItemClient;
+   public readonly location: LocationClient;
+   public readonly berry: BerryClient;
+   public readonly evolution: EvolutionClient;
+   public readonly game: GameClient;
+
+   constructor(config: HTTPConfig = {}) {
+      this.enableLogging = config.enableLogging ?? __DEV__;
+
+      // Basic axios setup
       this.axiosInstance = axios.create({
-         baseURL: config.baseURL || "https://pokeapi.co/api/v2/",
+         baseURL: "https://pokeapi.co/api/v2/",
          timeout: config.timeout || 10000,
-         headers: {
-            Accept: "application/json",
-            "Content-Type": "application/json",
-         },
+         headers: { Accept: "application/json" },
       });
 
-      // Initialize Pokenode-TS clients
-      this.pokemonClient = new PokemonClient();
-      this.moveClient = new MoveClient();
-      this.itemClient = new ItemClient();
-      this.locationClient = new LocationClient();
-      this.berryClient = new BerryClient();
-      this.evolutionClient = new EvolutionClient();
-      this.gameClient = new GameClient();
+      // Initialize all PokeAPI clients
+      this.pokemon = new PokemonClient();
+      this.move = new MoveClient();
+      this.item = new ItemClient();
+      this.location = new LocationClient();
+      this.berry = new BerryClient();
+      this.evolution = new EvolutionClient();
+      this.game = new GameClient();
 
       this.setupErrorHandling();
    }
 
    private setupErrorHandling(): void {
       this.axiosInstance.interceptors.response.use(
-         (response) => response,
+         (response) => {
+            if (this.enableLogging) {
+               console.log(`✅ ${response.config.url}`);
+            }
+            return response;
+         },
          (error) => {
-            return Promise.reject(this.formatError(error));
+            const apiError = this.formatError(error);
+            if (this.enableLogging) {
+               console.error(`❌ ${error.config?.url}:`, apiError.message);
+            }
+            return Promise.reject(apiError);
          }
       );
    }
 
    private formatError(error: any): APIError {
       if (isAxiosError(error)) {
+         const status = error.response?.status;
+
          return {
-            code: error.response?.status?.toString() || "NETWORK_ERROR",
-            message: error.message || "An unexpected error occurred",
-            details: error.response?.data?.message,
-            retryable: (error.response?.status ?? 0) >= 500 || !error.response,
+            code: status?.toString() || "NETWORK_ERROR",
+            message: this.getSimpleErrorMessage(error, status),
+            retryable: !status || status >= 500 || status === 429,
          };
       }
 
       return {
          code: "UNKNOWN_ERROR",
-         message: error.message || "An unexpected error occurred",
-         details: undefined,
+         message: error.message || "Something went wrong",
          retryable: false,
       };
    }
 
-   // Simple getters for clients
-   public get axios(): AxiosInstance {
-      return this.axiosInstance;
+   private getSimpleErrorMessage(error: any, status?: number): string {
+      if (!status) {
+         return "Check your internet connection";
+      }
+
+      switch (status) {
+         case 404:
+            return "Not found";
+         case 429:
+            return "Too many requests, please wait";
+         case 500:
+            return "Server error, try again";
+         default:
+            return error.message || `Error ${status}`;
+      }
    }
 
-   public get pokemon(): PokemonClient {
-      return this.pokemonClient;
-   }
-
-   public get move(): MoveClient {
-      return this.moveClient;
-   }
-
-   public get item(): ItemClient {
-      return this.itemClient;
-   }
-
-   public get location(): LocationClient {
-      return this.locationClient;
-   }
-
-   public get berry(): BerryClient {
-      return this.berryClient;
-   }
-
-   public get evolution(): EvolutionClient {
-      return this.evolutionClient;
-   }
-
-   public get game(): GameClient {
-      return this.gameClient;
-   }
-
-   // Basic health check - simplified
-   public async healthCheck(): Promise<boolean> {
+   /**
+    * Quick health check
+    */
+   public async isOnline(): Promise<boolean> {
       try {
-         await this.pokemonClient.getPokemonById(1);
+         await this.pokemon.getPokemonById(1);
          return true;
       } catch {
          return false;
       }
    }
+
+   /**
+    * Get raw axios instance if needed
+    */
+   public get axios(): AxiosInstance {
+      return this.axiosInstance;
+   }
 }
 
-// Factory function and singleton
-export function createHTTPClient(config?: HTTPClientConfig): HTTPClient {
-   return new HTTPClient(config);
-}
+/**
+ * Default HTTP client instance
+ */
+export const http = new HTTP();
 
-export const httpClient = createHTTPClient();
+/**
+ * Quick factory for custom configs
+ */
+export const createHTTP = (config?: HTTPConfig) => new HTTP(config);
