@@ -1,162 +1,162 @@
 import { MainClient } from "pokenode-ts";
+import {
+   ServiceConfig,
+   PaginationParams,
+   PaginatedResponse,
+   BatchOperationOptions,
+   ServiceHealth,
+} from "./Types";
+import { RateLimiter } from "./Module/RateLimiter";
+import { RetryManager } from "./Module/RetryManager";
+import { Validator } from "./Module/Validator";
+import { UrlUtils } from "./Module/UrlUtils";
+import { BatchProcessor } from "./Module/BatchProcessor";
+import { CacheManager } from "./Module/CacheManager";
 
 export class BaseService {
    protected api: MainClient;
-   private requestCount: number = 0;
-   private lastRequestTime: number = 0;
-   private readonly rateLimit: number = 100; // requests per minute
+   private rateLimiter: RateLimiter;
+   private retryManager: RetryManager;
+   private batchProcessor: BatchProcessor;
+   private cacheManager: CacheManager;
 
-   constructor() {
-      this.api = new MainClient({
-         cacheOptions: {
-            ttl: 10 * 60 * 1000, // 10 minutes cache
-         },
-      });
+   constructor(config: ServiceConfig = {}) {
+      const {
+         rateLimit = 100,
+         cacheOptions = { ttl: 10 * 60 * 1000 },
+         retryAttempts = 3,
+         retryDelay = 1000,
+      } = config;
+
+      this.rateLimiter = new RateLimiter(rateLimit);
+      this.retryManager = new RetryManager(retryAttempts, retryDelay);
+      this.batchProcessor = new BatchProcessor();
+      this.cacheManager = new CacheManager(cacheOptions);
+      this.api = this.cacheManager.getClient();
    }
 
-   // Enhanced error handling wrapper
+   // ============= CORE API METHODS =============
+
+   /**
+    * Generic method to get a resource by identifier with automatic retry
+    */
+   protected async getResource<T>(
+      getByName: (name: string) => Promise<T>,
+      getById: (id: number) => Promise<T>,
+      identifier: string | number,
+      resourceType: string
+   ): Promise<T> {
+      Validator.validateIdentifier(identifier, resourceType);
+
+      return this.executeWithErrorHandling(async () => {
+         return typeof identifier === "string"
+            ? await getByName(identifier.toLowerCase().trim())
+            : await getById(identifier);
+      }, `Failed to fetch ${resourceType}: ${identifier}`);
+   }
+
+   /**
+    * Generic method to get paginated lists
+    */
+   protected async getResourceList<T>(
+      listFunction: (
+         offset: number,
+         limit: number
+      ) => Promise<PaginatedResponse<T>>,
+      resourceType: string,
+      { offset = 0, limit = 20 }: PaginationParams = {}
+   ): Promise<PaginatedResponse<T>> {
+      Validator.validatePaginationParams(offset, limit);
+
+      return this.executeWithErrorHandling(
+         async () => await listFunction(offset, limit),
+         `Failed to fetch ${resourceType} list`
+      );
+   }
+
+   // ============= ENHANCED OPERATIONS =============
+
    protected async executeWithErrorHandling<T>(
       operation: () => Promise<T>,
       errorMessage: string
    ): Promise<T> {
-      try {
-         await this.checkRateLimit();
+      return this.retryManager.executeWithRetry(async () => {
+         await this.rateLimiter.checkLimit();
          const result = await operation();
-         this.requestCount++;
+         this.rateLimiter.incrementCount();
          return result;
-      } catch (error) {
-         const errorDetails =
-            error instanceof Error ? error.message : "Unknown error";
-         console.error(`${errorMessage}: ${errorDetails}`);
-         throw new Error(`${errorMessage}: ${errorDetails}`);
-      }
+      }, errorMessage);
    }
 
-   // Rate limiting
-   private async checkRateLimit(): Promise<void> {
-      const now = Date.now();
-      if (now - this.lastRequestTime < 60000) {
-         // Within 1 minute
-         if (this.requestCount >= this.rateLimit) {
-            const waitTime = 60000 - (now - this.lastRequestTime);
-            console.warn(`Rate limit reached. Waiting ${waitTime}ms`);
-            await new Promise((resolve) => setTimeout(resolve, waitTime));
-            this.requestCount = 0;
-            this.lastRequestTime = Date.now();
-         }
-      } else {
-         this.requestCount = 0;
-         this.lastRequestTime = now;
-      }
-   }
-
-   // Input validation helpers
-   protected validateIdentifier(
-      identifier: string | number,
-      name: string
-   ): void {
-      if (identifier === null || identifier === undefined) {
-         throw new Error(`${name} identifier cannot be null or undefined`);
-      }
-      if (typeof identifier === "string" && identifier.trim().length === 0) {
-         throw new Error(`${name} identifier cannot be empty string`);
-      }
-      if (
-         typeof identifier === "number" &&
-         (identifier < 1 || !Number.isInteger(identifier))
-      ) {
-         throw new Error(`${name} identifier must be a positive integer`);
-      }
-   }
-
-   protected validatePaginationParams(offset: number, limit: number): void {
-      if (offset < 0 || !Number.isInteger(offset)) {
-         throw new Error("Offset must be a non-negative integer");
-      }
-      if (limit < 1 || limit > 1000 || !Number.isInteger(limit)) {
-         throw new Error("Limit must be between 1 and 1000");
-      }
-   }
-
-   // Enhanced URL ID extraction
-   protected extractIdFromUrl(url: string): number | null {
-      if (!url || typeof url !== "string") return null;
-
-      const match = url.match(/\/(\d+)\/$/);
-      return match ? parseInt(match[1], 10) : null;
-   }
-
-   // Extract name from URL
-   protected extractNameFromUrl(url: string): string | null {
-      if (!url || typeof url !== "string") return null;
-
-      const parts = url.split("/").filter((part) => part.length > 0);
-      return parts.length >= 2 ? parts[parts.length - 1] : null;
-   }
-
-   // Batch operation with concurrency control
    protected async batchOperation<T, R>(
       items: T[],
-      operation: (item: T) => Promise<R>,
-      concurrency: number = 5
+      operation: (item: T, index: number) => Promise<R>,
+      concurrency: number = 5,
+      onProgress?: (completed: number, total: number) => void
    ): Promise<R[]> {
-      const results: R[] = [];
-
-      for (let i = 0; i < items.length; i += concurrency) {
-         const batch = items.slice(i, i + concurrency);
-         const batchPromises = batch.map((item) => operation(item));
-         const batchResults = await Promise.allSettled(batchPromises);
-
-         batchResults.forEach((result, index) => {
-            if (result.status === "fulfilled") {
-               results.push(result.value);
-            } else {
-               console.error(
-                  `Batch operation failed for item ${i + index}:`,
-                  result.reason
-               );
-            }
-         });
-
-         // Small delay between batches to be respectful to the API
-         if (i + concurrency < items.length) {
-            await new Promise((resolve) => setTimeout(resolve, 100));
-         }
-      }
-
-      return results;
+      return this.batchProcessor.processBatch(items, operation, {
+         concurrency,
+         onProgress,
+         stopOnError: false,
+      });
    }
 
-   // Cache management
+   // ============= UTILITY METHODS =============
+
+   protected extractIdFromUrl = UrlUtils.extractIdFromUrl;
+   protected extractNameFromUrl = UrlUtils.extractNameFromUrl;
+   protected buildApiUrl = UrlUtils.buildApiUrl;
+   protected isValidApiUrl = UrlUtils.isValidApiUrl;
+
+   // Validation methods
+   protected validateIdentifier = Validator.validateIdentifier;
+   protected validatePaginationParams = Validator.validatePaginationParams;
+   protected validateArray = Validator.validateArray;
+
+   // ============= CACHE MANAGEMENT =============
+
    clearCache(): void {
-      console.log("Clearing cache by reinitializing service");
-      this.api = new MainClient({
-         cacheOptions: {
-            ttl: 10 * 60 * 1000,
-         },
-      });
-      this.requestCount = 0;
-      this.lastRequestTime = 0;
+      this.cacheManager.clear();
+      this.api = this.cacheManager.getClient();
+      this.rateLimiter.reset();
    }
 
    getCacheInfo() {
+      const rateLimiterStats = this.rateLimiter.getStats();
+      const retryConfig = this.retryManager.getConfig();
+      const cacheInfo = this.cacheManager.getInfo();
+
       return {
-         ttl: "10 minutes",
-         maxItems: 500,
-         requestCount: this.requestCount,
-         lastRequestTime: new Date(this.lastRequestTime).toISOString(),
-         logLevel:
-            typeof __DEV__ !== "undefined" && __DEV__ ? "debug" : "error",
+         ...cacheInfo,
+         requestCount: rateLimiterStats.requestCount,
+         lastRequestTime: new Date(
+            rateLimiterStats.lastRequestTime
+         ).toISOString(),
+         rateLimit: rateLimiterStats.rateLimit,
+         retryAttempts: retryConfig.attempts,
       };
    }
 
-   // Service health check
-   getServiceHealth() {
+   // ============= HEALTH & MONITORING =============
+
+   getServiceHealth(): ServiceHealth {
+      const rateLimiterStats = this.rateLimiter.getStats();
+      const retryConfig = this.retryManager.getConfig();
+      const cacheInfo = this.cacheManager.getInfo();
+
       return {
          isHealthy: true,
-         requestCount: this.requestCount,
-         lastRequestTime: this.lastRequestTime,
-         rateLimit: this.rateLimit,
+         requestCount: rateLimiterStats.requestCount,
+         lastRequestTime: rateLimiterStats.lastRequestTime,
+         rateLimit: rateLimiterStats.rateLimit,
+         cacheInfo: {
+            ttl: cacheInfo.ttl,
+            maxItems: cacheInfo.maxItems!,
+         },
+         retryConfig: {
+            attempts: retryConfig.attempts,
+            delay: retryConfig.delay,
+         },
       };
    }
 }
