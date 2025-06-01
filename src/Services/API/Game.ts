@@ -3,69 +3,99 @@ import type { Generation, Pokedex, Version, VersionGroup } from "pokenode-ts";
 
 export class GameService extends BaseService {
    async getGeneration(identifier: string | number): Promise<Generation> {
-      try {
+      this.validateIdentifier(identifier, "Generation");
+
+      return this.executeWithErrorHandling(async () => {
          return typeof identifier === "string"
-            ? await this.api.game.getGenerationByName(identifier.toLowerCase())
+            ? await this.api.game.getGenerationByName(
+                 identifier.toLowerCase().trim()
+              )
             : await this.api.game.getGenerationById(identifier);
-      } catch (error) {
-         throw new Error(`Failed to fetch generation: ${error}`);
-      }
+      }, `Failed to fetch generation: ${identifier}`);
    }
 
    async getGenerationList(offset: number = 0, limit: number = 20) {
-      return await this.api.game.listGenerations(offset, limit);
+      this.validatePaginationParams(offset, limit);
+
+      return this.executeWithErrorHandling(
+         async () => await this.api.game.listGenerations(offset, limit),
+         "Failed to fetch generation list"
+      );
    }
 
    async getPokedex(identifier: string | number): Promise<Pokedex> {
-      try {
+      this.validateIdentifier(identifier, "Pokedex");
+
+      return this.executeWithErrorHandling(async () => {
          return typeof identifier === "string"
-            ? await this.api.game.getPokedexByName(identifier.toLowerCase())
+            ? await this.api.game.getPokedexByName(
+                 identifier.toLowerCase().trim()
+              )
             : await this.api.game.getPokedexById(identifier);
-      } catch (error) {
-         throw new Error(`Failed to fetch pokedex: ${error}`);
-      }
+      }, `Failed to fetch pokedex: ${identifier}`);
    }
 
    async getPokedexList(offset: number = 0, limit: number = 20) {
-      return await this.api.game.listPokedexes(offset, limit);
+      this.validatePaginationParams(offset, limit);
+
+      return this.executeWithErrorHandling(
+         async () => await this.api.game.listPokedexes(offset, limit),
+         "Failed to fetch pokedex list"
+      );
    }
 
    async getVersion(identifier: string | number): Promise<Version> {
-      try {
+      this.validateIdentifier(identifier, "Version");
+
+      return this.executeWithErrorHandling(async () => {
          return typeof identifier === "string"
-            ? await this.api.game.getVersionByName(identifier.toLowerCase())
+            ? await this.api.game.getVersionByName(
+                 identifier.toLowerCase().trim()
+              )
             : await this.api.game.getVersionById(identifier);
-      } catch (error) {
-         throw new Error(`Failed to fetch version: ${error}`);
-      }
+      }, `Failed to fetch version: ${identifier}`);
    }
 
    async getVersionList(offset: number = 0, limit: number = 20) {
-      return await this.api.game.listVersions(offset, limit);
+      this.validatePaginationParams(offset, limit);
+
+      return this.executeWithErrorHandling(
+         async () => await this.api.game.listVersions(offset, limit),
+         "Failed to fetch version list"
+      );
    }
 
    async getVersionGroup(identifier: string | number): Promise<VersionGroup> {
-      try {
+      this.validateIdentifier(identifier, "Version Group");
+
+      return this.executeWithErrorHandling(async () => {
          return typeof identifier === "string"
             ? await this.api.game.getVersionGroupByName(
-                 identifier.toLowerCase()
+                 identifier.toLowerCase().trim()
               )
             : await this.api.game.getVersionGroupById(identifier);
-      } catch (error) {
-         throw new Error(`Failed to fetch version group: ${error}`);
-      }
+      }, `Failed to fetch version group: ${identifier}`);
    }
 
    async getVersionGroupList(offset: number = 0, limit: number = 20) {
-      return await this.api.game.listVersionGroups(offset, limit);
+      this.validatePaginationParams(offset, limit);
+
+      return this.executeWithErrorHandling(
+         async () => await this.api.game.listVersionGroups(offset, limit),
+         "Failed to fetch version group list"
+      );
    }
 
    async getPokemonByGeneration(generationName: string) {
+      this.validateIdentifier(generationName, "Generation name");
+
       const generation = await this.getGeneration(generationName);
       return generation.pokemon_species;
    }
 
    async getPokedexEntries(pokedexName: string) {
+      this.validateIdentifier(pokedexName, "Pokedex name");
+
       const pokedex = await this.getPokedex(pokedexName);
       return pokedex.pokemon_entries;
    }

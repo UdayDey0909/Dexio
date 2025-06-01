@@ -3,20 +3,29 @@ import type { Ability } from "pokenode-ts";
 
 export class AbilityService extends BaseService {
    async getAbility(identifier: string | number): Promise<Ability> {
-      try {
+      this.validateIdentifier(identifier, "Ability");
+
+      return this.executeWithErrorHandling(async () => {
          return typeof identifier === "string"
-            ? await this.api.pokemon.getAbilityByName(identifier.toLowerCase())
+            ? await this.api.pokemon.getAbilityByName(
+                 identifier.toLowerCase().trim()
+              )
             : await this.api.pokemon.getAbilityById(identifier);
-      } catch (error) {
-         throw new Error(`Failed to fetch ability: ${error}`);
-      }
+      }, `Failed to fetch ability: ${identifier}`);
    }
 
    async getAbilityList(offset: number = 0, limit: number = 20) {
-      return await this.api.pokemon.listAbilities(offset, limit);
+      this.validatePaginationParams(offset, limit);
+
+      return this.executeWithErrorHandling(
+         async () => await this.api.pokemon.listAbilities(offset, limit),
+         "Failed to fetch ability list"
+      );
    }
 
    async getAbilityDetails(abilityName: string) {
+      this.validateIdentifier(abilityName, "Ability name");
+
       const ability = await this.getAbility(abilityName);
       return {
          ...ability,

@@ -3,25 +3,34 @@ import type { Type } from "pokenode-ts";
 
 export class TypeService extends BaseService {
    async getType(identifier: string | number): Promise<Type> {
-      try {
+      this.validateIdentifier(identifier, "Type");
+
+      return this.executeWithErrorHandling(async () => {
          return typeof identifier === "string"
-            ? await this.api.pokemon.getTypeByName(identifier.toLowerCase())
+            ? await this.api.pokemon.getTypeByName(
+                 identifier.toLowerCase().trim()
+              )
             : await this.api.pokemon.getTypeById(identifier);
-      } catch (error) {
-         throw new Error(`Failed to fetch type: ${error}`);
-      }
+      }, `Failed to fetch type: ${identifier}`);
    }
 
    async getTypeList() {
-      return await this.api.pokemon.listTypes();
+      return this.executeWithErrorHandling(
+         async () => await this.api.pokemon.listTypes(),
+         "Failed to fetch type list"
+      );
    }
 
    async getPokemonByType(typeName: string) {
+      this.validateIdentifier(typeName, "Type name");
+
       const type = await this.getType(typeName);
       return type.pokemon.map((p) => p.pokemon);
    }
 
    async getTypeEffectiveness(typeName: string) {
+      this.validateIdentifier(typeName, "Type name");
+
       const type = await this.getType(typeName);
       return {
          doubleDamageTo: type.damage_relations.double_damage_to,
@@ -34,6 +43,8 @@ export class TypeService extends BaseService {
    }
 
    async getMovesByType(typeName: string) {
+      this.validateIdentifier(typeName, "Type name");
+
       const type = await this.getType(typeName);
       return type.moves;
    }

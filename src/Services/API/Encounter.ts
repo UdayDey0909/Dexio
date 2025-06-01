@@ -9,62 +9,80 @@ export class EncounterService extends BaseService {
    async getEncounterMethod(
       identifier: string | number
    ): Promise<EncounterMethod> {
-      try {
+      this.validateIdentifier(identifier, "Encounter Method");
+
+      return this.executeWithErrorHandling(async () => {
          return typeof identifier === "string"
             ? await this.api.encounter.getEncounterMethodByName(
-                 identifier.toLowerCase()
+                 identifier.toLowerCase().trim()
               )
             : await this.api.encounter.getEncounterMethodById(identifier);
-      } catch (error) {
-         throw new Error(`Failed to fetch encounter method: ${error}`);
-      }
+      }, `Failed to fetch encounter method: ${identifier}`);
    }
 
    async getEncounterMethodList(offset: number = 0, limit: number = 20) {
-      return await this.api.encounter.listEncounterMethods(offset, limit);
+      this.validatePaginationParams(offset, limit);
+
+      return this.executeWithErrorHandling(
+         async () =>
+            await this.api.encounter.listEncounterMethods(offset, limit),
+         "Failed to fetch encounter method list"
+      );
    }
 
    async getEncounterCondition(
       identifier: string | number
    ): Promise<EncounterCondition> {
-      try {
+      this.validateIdentifier(identifier, "Encounter Condition");
+
+      return this.executeWithErrorHandling(async () => {
          return typeof identifier === "string"
             ? await this.api.encounter.getEncounterConditionByName(
-                 identifier.toLowerCase()
+                 identifier.toLowerCase().trim()
               )
             : await this.api.encounter.getEncounterConditionById(identifier);
-      } catch (error) {
-         throw new Error(`Failed to fetch encounter condition: ${error}`);
-      }
+      }, `Failed to fetch encounter condition: ${identifier}`);
    }
 
    async getEncounterConditionList(offset: number = 0, limit: number = 20) {
-      return await this.api.encounter.listEncounterConditions(offset, limit);
+      this.validatePaginationParams(offset, limit);
+
+      return this.executeWithErrorHandling(
+         async () =>
+            await this.api.encounter.listEncounterConditions(offset, limit),
+         "Failed to fetch encounter condition list"
+      );
    }
 
    async getEncounterConditionValue(
       identifier: string | number
    ): Promise<EncounterConditionValue> {
-      try {
+      this.validateIdentifier(identifier, "Encounter Condition Value");
+
+      return this.executeWithErrorHandling(async () => {
          return typeof identifier === "string"
             ? await this.api.encounter.getEncounterConditionValueByName(
-                 identifier.toLowerCase()
+                 identifier.toLowerCase().trim()
               )
             : await this.api.encounter.getEncounterConditionValueById(
                  identifier
               );
-      } catch (error) {
-         throw new Error(`Failed to fetch encounter condition value: ${error}`);
-      }
+      }, `Failed to fetch encounter condition value: ${identifier}`);
    }
 
    async getEncounterConditionValueList(
       offset: number = 0,
       limit: number = 20
    ) {
-      return await this.api.encounter.listEncounterConditionValues(
-         offset,
-         limit
+      this.validatePaginationParams(offset, limit);
+
+      return this.executeWithErrorHandling(
+         async () =>
+            await this.api.encounter.listEncounterConditionValues(
+               offset,
+               limit
+            ),
+         "Failed to fetch encounter condition value list"
       );
    }
 }
