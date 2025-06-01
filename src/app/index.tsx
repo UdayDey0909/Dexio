@@ -1,19 +1,13 @@
-import { StyleSheet, Text, View } from "react-native";
 import React from "react";
+import { View, ScrollView } from "react-native";
+import { PokemonCard } from "../Components/PokemonCard"; // Adjust the import path if needed
 
-export default function index() {
+export default function App() {
    return (
-      <View style={styles.container}>
-         <Text>index</Text>
-      </View>
+      <ScrollView>
+         <PokemonCard pokemonId={1} />
+         <PokemonCard pokemonId={4} />
+         <PokemonCard pokemonId={7} />
+      </ScrollView>
    );
 }
-
-const styles = StyleSheet.create({
-   container: {
-      flex: 1,
-      backgroundColor: "#fff",
-      alignItems: "center",
-      justifyContent: "center",
-   },
-});
