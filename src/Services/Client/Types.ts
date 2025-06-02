@@ -16,10 +16,9 @@ export interface CacheOptions {
 }
 
 export interface ServiceConfig {
-   cacheOptions?: CacheOptions;
-   retryAttempts?: number;
+   maxRetries?: number;
    retryDelay?: number;
-   // Removed rateLimit option
+   cacheTimeout?: number;
 }
 
 export interface BatchOperationOptions {

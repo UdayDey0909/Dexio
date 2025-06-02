@@ -1,74 +1,51 @@
 export class RetryManager {
-   private readonly retryAttempts: number;
-   private readonly retryDelay: number;
-
-   constructor(retryAttempts: number = 3, retryDelay: number = 1000) {
-      this.retryAttempts = retryAttempts;
-      this.retryDelay = retryDelay;
-   }
+   constructor(
+      private maxAttempts: number = 3,
+      private baseDelay: number = 1000
+   ) {}
 
    async executeWithRetry<T>(
       operation: () => Promise<T>,
-      errorMessage: string,
-      customRetryAttempts?: number
+      errorMessage?: string
    ): Promise<T> {
-      const maxAttempts = customRetryAttempts || this.retryAttempts;
-      let lastError: Error = new Error("Unknown error");
+      let lastError: Error;
 
-      for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      for (let attempt = 1; attempt <= this.maxAttempts; attempt++) {
          try {
-            const result = await operation();
-            return result;
+            return await operation();
          } catch (error) {
             lastError =
                error instanceof Error ? error : new Error(String(error));
 
-            if (attempt === maxAttempts) {
-               break;
+            // Don't retry on last attempt
+            if (attempt === this.maxAttempts) break;
+
+            // Only retry network-related errors
+            if (this.isRetryableError(lastError)) {
+               const delay = this.baseDelay * attempt; // Simple linear backoff
+               await this.delay(delay);
+               continue;
             }
 
-            if (this.shouldRetry(lastError)) {
-               const delay = this.retryDelay * Math.pow(2, attempt - 1); // Exponential backoff
-               console.warn(
-                  `Attempt ${attempt} failed, retrying in ${delay}ms:`,
-                  lastError.message
-               );
-               await this.delay(delay);
-            } else {
-               break;
-            }
+            // Don't retry non-network errors
+            break;
          }
       }
 
-      const errorDetails = lastError?.message || "Unknown error";
-      console.error(`${errorMessage}: ${errorDetails}`);
-      throw new Error(`${errorMessage}: ${errorDetails}`);
+      throw lastError!;
    }
 
-   protected shouldRetry(error: Error): boolean {
-      const retryableErrors = [
-         "network",
-         "timeout",
-         "rate limit",
-         "connection",
-         "ECONNRESET",
-         "ETIMEDOUT",
-      ];
-
-      const errorMessage = error.message.toLowerCase();
-      return retryableErrors.some((retryableError) =>
-         errorMessage.includes(retryableError)
+   private isRetryableError(error: Error): boolean {
+      const message = error.message.toLowerCase();
+      return (
+         message.includes("network") ||
+         message.includes("timeout") ||
+         message.includes("connection") ||
+         message.includes("fetch")
       );
    }
 
-   private async delay(ms: number): Promise<void> {
+   private delay(ms: number): Promise<void> {
       return new Promise((resolve) => setTimeout(resolve, ms));
-   }
-
-   getConfig() {
-      return {
-         attempts: this.retryAttempts,
-         delay: this.retryDelay,
-      };
    }
 }
