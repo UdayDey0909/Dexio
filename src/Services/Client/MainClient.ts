@@ -46,7 +46,7 @@ export class BaseService {
       identifier: string | number,
       resourceType: string
    ): Promise<T> {
-      Validator.validateIdentifier(identifier, resourceType);
+      this.validateIdentifier(identifier, resourceType);
 
       return this.executeWithErrorHandling(async () => {
          return typeof identifier === "string"
@@ -66,7 +66,7 @@ export class BaseService {
       resourceType: string,
       { offset = 0, limit = 20 }: PaginationParams = {}
    ): Promise<PaginatedResponse<T>> {
-      Validator.validatePaginationParams(offset, limit);
+      this.validatePaginationParams(offset, limit);
 
       return this.executeWithErrorHandling(
          async () => await listFunction(offset, limit),
@@ -82,9 +82,14 @@ export class BaseService {
    ): Promise<T> {
       return this.retryManager.executeWithRetry(async () => {
          await this.rateLimiter.checkLimit();
-         const result = await operation();
-         this.rateLimiter.incrementCount();
-         return result;
+         try {
+            const result = await operation();
+            this.rateLimiter.incrementCount();
+            return result;
+         } catch (error) {
+            this.rateLimiter.incrementCount();
+            throw error;
+         }
       }, errorMessage);
    }
 
@@ -94,6 +99,10 @@ export class BaseService {
       concurrency: number = 5,
       onProgress?: (completed: number, total: number) => void
    ): Promise<R[]> {
+      if (!Array.isArray(items) || items.length === 0) {
+         throw new Error("Items array cannot be empty");
+      }
+
       return this.batchProcessor.processBatch(items, operation, {
          concurrency,
          onProgress,
@@ -129,9 +138,10 @@ export class BaseService {
       return {
          ...cacheInfo,
          requestCount: rateLimiterStats.requestCount,
-         lastRequestTime: new Date(
-            rateLimiterStats.lastRequestTime
-         ).toISOString(),
+         lastRequestTime:
+            rateLimiterStats.lastRequestTime > 0
+               ? new Date(rateLimiterStats.lastRequestTime).toISOString()
+               : null,
          rateLimit: rateLimiterStats.rateLimit,
          retryAttempts: retryConfig.attempts,
       };
@@ -150,8 +160,8 @@ export class BaseService {
          lastRequestTime: rateLimiterStats.lastRequestTime,
          rateLimit: rateLimiterStats.rateLimit,
          cacheInfo: {
-            ttl: cacheInfo.ttl,
-            maxItems: cacheInfo.maxItems!,
+            ttl: cacheInfo.ttlMinutes,
+            maxItems: cacheInfo.maxItems || 500,
          },
          retryConfig: {
             attempts: retryConfig.attempts,

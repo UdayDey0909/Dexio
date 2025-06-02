@@ -34,11 +34,61 @@ export interface ServiceHealth {
    lastRequestTime: number;
    rateLimit: number;
    cacheInfo: {
-      ttl: string;
+      ttl: number; // Changed from string to number for consistency
       maxItems: number;
    };
    retryConfig: {
       attempts: number;
       delay: number;
    };
+}
+
+// Additional interfaces for better type safety
+export interface CacheInfo {
+   ttl: string;
+   ttlMinutes: number;
+   ttlMs: number;
+   maxItems?: number;
+}
+
+export interface RateLimiterStats {
+   requestCount: number;
+   lastRequestTime: number;
+   rateLimit: number;
+}
+
+export interface RetryConfig {
+   attempts: number;
+   delay: number;
+}
+
+// Error types for better error handling
+export interface APIError extends Error {
+   status?: number;
+   code?: string;
+   details?: any;
+}
+
+export interface BatchResult<T> {
+   success: T[];
+   errors: Array<{
+      index: number;
+      error: Error;
+      item: any;
+   }>;
+}
+
+// Validation result interface
+export interface ValidationResult {
+   isValid: boolean;
+   errors: string[];
+}
+
+// Service status interface
+export interface ServiceStatus {
+   service: string;
+   status: "healthy" | "degraded" | "unhealthy";
+   lastCheck: string;
+   responseTime?: number;
+   errorRate?: number;
 }

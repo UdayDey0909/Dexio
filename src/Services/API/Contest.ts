@@ -6,14 +6,10 @@ import type {
 } from "pokenode-ts";
 
 export class ContestService extends BaseService {
-   // Note: Contest endpoints might not be available in pokenode-ts
-   // This is a corrected version based on actual API structure
-
    async getContestType(identifier: string | number): Promise<ContestType> {
       this.validateIdentifier(identifier, "Contest Type");
 
       return this.executeWithErrorHandling(async () => {
-         // Contest types are in the contest namespace, not pokemon
          return typeof identifier === "string"
             ? await this.api.contest.getContestTypeByName(
                  identifier.toLowerCase().trim()
