@@ -7,7 +7,6 @@ import {
    BatchOperationOptions,
    ServiceHealth,
 } from "./Types";
-import { RateLimiter } from "./Module/RateLimiter";
 import { RetryManager } from "./Module/RetryManager";
 import { Validator } from "./Module/Validator";
 import { UrlUtils } from "./Module/UrlUtils";
@@ -20,7 +19,6 @@ import { ErrorHandler } from "./Module/ErrorHandler";
 
 export class BaseService {
    protected api: MainClient;
-   private rateLimiter: RateLimiter;
    private retryManager: RetryManager;
    private batchProcessor: BatchProcessor;
    private cacheManager: CacheManager;
@@ -29,13 +27,11 @@ export class BaseService {
 
    constructor(config: ServiceConfig = {}) {
       const {
-         rateLimit = 50, // Reduced for mobile
          cacheOptions = { ttl: 5 * 60 * 1000, maxItems: 200 }, // Mobile optimized
          retryAttempts = 3,
          retryDelay = 1000,
       } = config;
 
-      this.rateLimiter = new RateLimiter(rateLimit);
       this.retryManager = new RetryManager(retryAttempts, retryDelay);
       this.batchProcessor = new BatchProcessor();
       this.cacheManager = new CacheManager(cacheOptions);
@@ -126,20 +122,17 @@ export class BaseService {
       );
    }
 
-   // ============= EXISTING METHODS (Keep your current implementation) =============
+   // ============= CORE METHODS (Without Rate Limiting) =============
 
    protected async executeWithErrorHandling<T>(
       operation: () => Promise<T>,
       errorMessage: string
    ): Promise<T> {
       return this.retryManager.executeWithRetry(async () => {
-         await this.rateLimiter.checkLimit();
          try {
             const result = await operation();
-            this.rateLimiter.incrementCount();
             return result;
          } catch (error) {
-            this.rateLimiter.incrementCount();
             throw error;
          }
       }, errorMessage);
@@ -148,7 +141,7 @@ export class BaseService {
    protected async batchOperation<T, R>(
       items: T[],
       operation: (item: T, index: number) => Promise<R>,
-      concurrency: number = 3, // Reduced for mobile
+      concurrency: number = 5, // Increased since no rate limiting
       onProgress?: (completed: number, total: number) => void
    ): Promise<R[]> {
       if (!Array.isArray(items) || items.length === 0) {
@@ -177,7 +170,6 @@ export class BaseService {
    clearCache(): void {
       this.cacheManager.clear();
       this.api = this.cacheManager.getClient();
-      this.rateLimiter.reset();
    }
 
    async clearOfflineStorage(): Promise<void> {
@@ -202,15 +194,14 @@ export class BaseService {
    // ============= ENHANCED HEALTH & MONITORING =============
 
    getServiceHealth(): ServiceHealth {
-      const rateLimiterStats = this.rateLimiter.getStats();
       const retryConfig = this.retryManager.getConfig();
       const cacheInfo = this.cacheManager.getInfo();
 
       return {
          isHealthy: true,
-         requestCount: rateLimiterStats.requestCount,
-         lastRequestTime: rateLimiterStats.lastRequestTime,
-         rateLimit: rateLimiterStats.rateLimit,
+         requestCount: 0, // No longer tracking since no rate limiting
+         lastRequestTime: 0,
+         rateLimit: 0, // No rate limit
          cacheInfo: {
             ttl: cacheInfo.ttlMinutes,
             maxItems: cacheInfo.maxItems || 200,

@@ -40,7 +40,7 @@ export class Validator {
       array: T[],
       name: string,
       minLength: number = 1,
-      maxLength: number = 100
+      maxLength: number = 500 // Increased from 100 to 500 since no rate limiting
    ): void {
       if (!Array.isArray(array)) {
          throw new Error(`${name} must be an array`);
@@ -56,9 +56,9 @@ export class Validator {
    static validateBatchOptions(options: BatchOperationOptions): void {
       if (
          options.concurrency &&
-         (options.concurrency < 1 || options.concurrency > 20)
+         (options.concurrency < 1 || options.concurrency > 50) // Increased from 20 to 50
       ) {
-         throw new Error("Concurrency must be between 1 and 20");
+         throw new Error("Concurrency must be between 1 and 50");
       }
    }
 }

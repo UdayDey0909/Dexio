@@ -7,7 +7,7 @@ export class BatchProcessor {
       operation: (item: T, index: number) => Promise<R>,
       options: BatchOperationOptions = {}
    ): Promise<R[]> {
-      const { concurrency = 5, onProgress, stopOnError = false } = options;
+      const { concurrency = 10, onProgress, stopOnError = false } = options; // Increased default concurrency
 
       Validator.validateArray(items, "Items");
       Validator.validateBatchOptions(options);
@@ -46,9 +46,9 @@ export class BatchProcessor {
             onProgress?.(completed, items.length);
          }
 
-         // Respectful delay between batches
+         // Shorter delay between batches since no rate limiting
          if (i + concurrency < items.length) {
-            await this.delay(100);
+            await this.delay(50); // Reduced from 100ms to 50ms
          }
       }
 

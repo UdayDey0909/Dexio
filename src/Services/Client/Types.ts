@@ -16,10 +16,10 @@ export interface CacheOptions {
 }
 
 export interface ServiceConfig {
-   rateLimit?: number;
    cacheOptions?: CacheOptions;
    retryAttempts?: number;
    retryDelay?: number;
+   // Removed rateLimit option
 }
 
 export interface BatchOperationOptions {
@@ -30,17 +30,19 @@ export interface BatchOperationOptions {
 
 export interface ServiceHealth {
    isHealthy: boolean;
-   requestCount: number;
-   lastRequestTime: number;
-   rateLimit: number;
+   requestCount: number; // Kept for compatibility but will be 0
+   lastRequestTime: number; // Kept for compatibility but will be 0
+   rateLimit: number; // Kept for compatibility but will be 0
    cacheInfo: {
-      ttl: number; // Changed from string to number for consistency
+      ttl: number;
       maxItems: number;
    };
    retryConfig: {
       attempts: number;
       delay: number;
    };
+   networkStatus?: boolean; // Added network status
+   memoryStatus?: "low" | "normal"; // Added memory status
 }
 
 // Additional interfaces for better type safety
@@ -49,12 +51,6 @@ export interface CacheInfo {
    ttlMinutes: number;
    ttlMs: number;
    maxItems?: number;
-}
-
-export interface RateLimiterStats {
-   requestCount: number;
-   lastRequestTime: number;
-   rateLimit: number;
 }
 
 export interface RetryConfig {
