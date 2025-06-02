@@ -11,21 +11,20 @@ import { RetryManager } from "./Module/RetryManager";
 import { Validator } from "./Module/Validator";
 import { UrlUtils } from "./Module/UrlUtils";
 import { BatchProcessor } from "./Module/BatchProcessor";
-import { MobileCacheManager } from "./Module/MemoryManager"; // Use simplified version
+import { MobileCacheManager } from "./Module/MemoryManager";
 import { NetworkManager } from "./Module/NetworkManager";
-import { OfflineStorage } from "./Module/OfflineStorage";
 import { ErrorHandler } from "./Module/ErrorHandler";
 
 export class BaseService {
    protected api: MainClient;
    private retryManager: RetryManager;
    private batchProcessor: BatchProcessor;
-   private cacheManager: MobileCacheManager; // Use mobile-optimized version
+   private cacheManager: MobileCacheManager;
    private networkManager: NetworkManager;
 
    constructor(config: ServiceConfig = {}) {
       const {
-         cacheOptions = { ttl: 5 * 60 * 1000, maxItems: 100 }, // Mobile optimized
+         cacheOptions = { ttl: 5 * 60 * 1000, maxItems: 100 },
          retryAttempts = 3,
          retryDelay = 1000,
       } = config;
@@ -37,59 +36,34 @@ export class BaseService {
       this.api = this.cacheManager.getClient();
    }
 
-   // ============= ENHANCED CORE API METHODS =============
+   // ============= CORE API METHODS =============
 
    /**
-    * Execute operation with full React Native support (network, offline, memory)
+    * Execute operation with network check and error handling
     */
-   protected async executeWithFullSupport<T>(
+   protected async executeWithNetworkSupport<T>(
       operation: () => Promise<T>,
       cacheKey: string,
       errorMessage: string
    ): Promise<T> {
-      try {
-         // Check network connectivity
-         if (!(await this.networkManager.checkConnection())) {
-            const cached = await OfflineStorage.retrieve<T>(cacheKey);
-            if (cached) {
-               console.log(`Using offline data for ${cacheKey}`);
-               return cached;
-            }
-            throw new Error(
-               "No network connection and no cached data available"
-            );
-         }
-
-         // Execute with error handling and retry
-         const result = await this.executeWithErrorHandling(
-            operation,
-            errorMessage
-         );
-
-         // Store for offline use (fire and forget)
-         OfflineStorage.store(cacheKey, result).catch((err) =>
-            console.warn("Failed to cache offline data:", err)
-         );
-
-         return result;
-      } catch (error) {
-         // Try offline fallback
-         const cached = await OfflineStorage.retrieve<T>(cacheKey);
-         if (cached) {
-            console.log(`Network failed, using offline data for ${cacheKey}`);
-            return cached;
-         }
-
-         // Transform error for better UX
-         const pokemonError = ErrorHandler.createError(error, errorMessage);
-         throw pokemonError;
+      // Check network connectivity
+      if (!(await this.networkManager.checkConnection())) {
+         throw new Error("No network connection available");
       }
+
+      // Execute with error handling and retry
+      const result = await this.executeWithErrorHandling(
+         operation,
+         errorMessage
+      );
+
+      return result;
    }
 
    /**
-    * Generic method to get a resource by identifier with full support
+    * Generic method to get a resource by identifier with network support
     */
-   protected async getResourceWithFullSupport<T>(
+   protected async getResourceWithNetworkSupport<T>(
       getByName: (name: string) => Promise<T>,
       getById: (id: number) => Promise<T>,
       identifier: string | number,
@@ -99,7 +73,7 @@ export class BaseService {
 
       const cacheKey = `${resourceType}_${identifier}`;
 
-      return this.executeWithFullSupport(
+      return this.executeWithNetworkSupport(
          async () => {
             return typeof identifier === "string"
                ? await getByName(identifier.toLowerCase().trim())
@@ -153,20 +127,11 @@ export class BaseService {
    protected validatePaginationParams = Validator.validatePaginationParams;
    protected validateArray = Validator.validateArray;
 
-   // ============= SIMPLIFIED CACHE & STORAGE MANAGEMENT =============
+   // ============= CACHE MANAGEMENT =============
 
    clearCache(): void {
       this.cacheManager.clear();
       this.api = this.cacheManager.getClient();
-   }
-
-   async clearOfflineStorage(): Promise<void> {
-      await OfflineStorage.clear();
-   }
-
-   async clearAllStorage(): Promise<void> {
-      this.clearCache();
-      await this.clearOfflineStorage();
    }
 
    // ============= NETWORK & CONNECTION MANAGEMENT =============
@@ -199,11 +164,11 @@ export class BaseService {
             delay: retryConfig.delay,
          },
          networkStatus: this.networkManager.isOnline(),
-         memoryStatus: "normal", // Simplified - no complex memory tracking
+         memoryStatus: "normal",
       };
    }
 
-   // Optional: Manual cleanup method for extreme cases
+   // Manual cleanup method
    performCleanup(): void {
       console.log("Performing manual cleanup");
       this.clearCache();
