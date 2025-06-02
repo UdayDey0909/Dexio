@@ -1,3 +1,4 @@
+// src/Services/Client/index.ts
 export * from "./Types";
 export * from "./MainClient";
 export * from "./Module/RetryManager";
@@ -7,4 +8,6 @@ export * from "./Module/CacheManager";
 export * from "./Module/NetworkManager";
 export * from "./Module/MemoryManager";
 export * from "./Module/ErrorHandler";
-// Removed OfflineStorage export
+
+// Export BaseService so API services can import it
+export { BaseService } from "./MainClient";
