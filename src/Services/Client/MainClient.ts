@@ -1,7 +1,7 @@
 import { MainClient } from "pokenode-ts";
 import { RetryManager } from "./Module/RetryManager";
 import { NetworkManager } from "./Module/NetworkManager";
-import { ErrorHandler, PokemonError } from "./Module/ErrorHandler";
+import { ErrorHandler } from "./Module/ErrorHandler";
 import { ServiceConfig } from "./Types";
 
 export class BaseService {
@@ -47,27 +47,6 @@ export class BaseService {
          const pokemonError = ErrorHandler.handle(error, errorContext);
          throw pokemonError;
       }
-   }
-
-   /**
-    * Get Pokemon by name or ID
-    */
-   protected async getPokemonResource<T>(
-      getByName: (name: string) => Promise<T>,
-      getById: (id: number) => Promise<T>,
-      identifier: string | number
-   ): Promise<T> {
-      if (!identifier) {
-         throw new Error("Identifier is required");
-      }
-
-      return this.execute(async () => {
-         if (typeof identifier === "string") {
-            return await getByName(identifier.toLowerCase().trim());
-         } else {
-            return await getById(identifier);
-         }
-      });
    }
 
    /**
