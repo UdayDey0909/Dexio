@@ -31,7 +31,6 @@ export class UrlUtils {
             .filter((part) => part.length > 0);
          return pathParts.length >= 2 ? pathParts[pathParts.length - 1] : null;
       } catch {
-         // Fallback for relative URLs
          const parts = url.split("/").filter((part) => part.length > 0);
          return parts.length >= 1 ? parts[parts.length - 1] : null;
       }

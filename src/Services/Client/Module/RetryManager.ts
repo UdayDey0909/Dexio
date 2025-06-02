@@ -1,3 +1,5 @@
+import { ErrorHandler } from "./ErrorHandler";
+
 export class RetryManager {
    constructor(
       private maxAttempts: number = 3,
@@ -20,29 +22,20 @@ export class RetryManager {
             // Don't retry on last attempt
             if (attempt === this.maxAttempts) break;
 
-            // Only retry network-related errors
-            if (this.isRetryableError(lastError)) {
-               const delay = this.baseDelay * attempt; // Simple linear backoff
+            // Check if error is retryable
+            const pokemonError = ErrorHandler.handle(lastError, errorMessage);
+            if (pokemonError.isRetryable) {
+               const delay = this.baseDelay * Math.pow(2, attempt - 1); // Exponential backoff
                await this.delay(delay);
                continue;
             }
 
-            // Don't retry non-network errors
+            // Don't retry non-retryable errors
             break;
          }
       }
 
       throw lastError!;
-   }
-
-   private isRetryableError(error: Error): boolean {
-      const message = error.message.toLowerCase();
-      return (
-         message.includes("network") ||
-         message.includes("timeout") ||
-         message.includes("connection") ||
-         message.includes("fetch")
-      );
    }
 
    private delay(ms: number): Promise<void> {

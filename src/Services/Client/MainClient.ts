@@ -1,11 +1,10 @@
-// src/Services/Client/MainClient.ts
 import { MainClient } from "pokenode-ts";
 import { RetryManager } from "./Module/RetryManager";
 import { NetworkManager } from "./Module/NetworkManager";
 import { ErrorHandler } from "./Module/ErrorHandler";
 import { Validator } from "./Module/Validator";
 import { UrlUtils } from "./Module/UrlUtils";
-import { ServiceConfig } from "./Types";
+import type { ServiceConfig, ServiceHealth } from "./Types";
 
 export class BaseService {
    protected api: MainClient;
@@ -16,70 +15,71 @@ export class BaseService {
       const {
          maxRetries = 3,
          retryDelay = 1000,
-         cacheTimeout = 5 * 60 * 1000, // 5 minutes
+         cacheTimeout = 5 * 60 * 1000,
       } = config;
 
       this.retryManager = new RetryManager(maxRetries, retryDelay);
       this.networkManager = new NetworkManager();
 
-      // Initialize API client with basic cache
       try {
          this.api = new MainClient({
             cacheOptions: { ttl: cacheTimeout },
          });
-         console.log("BaseService API client initialized with cache");
       } catch (error) {
          console.warn("Cache initialization failed, using fallback:", error);
-         this.api = new MainClient(); // Fallback without cache
+         this.api = new MainClient();
       }
    }
 
-   /**
-    * Execute operation with retry and error handling
-    * FIXED: Keeping only this method, removed duplicate execute()
-    */
    protected async executeWithErrorHandling<T>(
       operation: () => Promise<T>,
       errorContext?: string
    ): Promise<T> {
-      // Check network first
       if (!(await this.networkManager.checkConnection())) {
-         throw new Error("No network connection");
+         throw new Error("No network connection available");
       }
 
       try {
-         return await this.retryManager.executeWithRetry(operation);
+         return await this.retryManager.executeWithRetry(
+            operation,
+            errorContext
+         );
       } catch (error) {
          const pokemonError = ErrorHandler.handle(error, errorContext);
-         throw new Error(pokemonError.userMessage);
+         const enhancedError = new Error(pokemonError.userMessage);
+         enhancedError.cause = error;
+         throw enhancedError;
       }
    }
 
-   // REMOVED: Duplicate execute() method - use executeWithErrorHandling() everywhere
-
-   /**
-    * Batch operations with concurrency control
-    * FIXED: Using consistent concurrency limit of 5 (mobile-friendly)
-    */
    protected async batchOperation<T, R>(
       items: T[],
       operation: (item: T) => Promise<R>,
-      concurrency: number = 5 // Consistent default
+      concurrency: number = 3
    ): Promise<R[]> {
       if (!items?.length) return [];
 
-      // Validate batch size
       Validator.validateArray(items, "Batch items");
-
-      // Ensure concurrency doesn't exceed our limits
-      const safeConcurrency = Math.min(concurrency, 10);
+      const safeConcurrency = Math.min(concurrency, 5);
 
       const results: R[] = [];
       const errors: Array<{ item: T; error: Error }> = [];
 
       for (let i = 0; i < items.length; i += safeConcurrency) {
          const batch = items.slice(i, i + safeConcurrency);
-         const batchResults = await Promise.allSettled(batch.map(operation));
+
+         if (i > 0) {
+            await new Promise((resolve) => setTimeout(resolve, 200));
+         }
+
+         const batchResults = await Promise.allSettled(
+            batch.map(async (item, index) => {
+               if (index > 0) {
+                  await new Promise((resolve) => setTimeout(resolve, 50));
+               }
+               return operation(item);
+            })
+         );
 
          for (let j = 0; j < batchResults.length; j++) {
             const result = batchResults[j];
@@ -93,29 +93,20 @@ export class BaseService {
                         ? result.reason
                         : new Error(String(result.reason)),
                });
-               console.warn("Batch operation failed:", result.reason);
             }
-         }
-
-         // Small delay between batches to prevent overwhelming the API
-         if (i + safeConcurrency < items.length) {
-            await new Promise((resolve) => setTimeout(resolve, 100));
          }
       }
 
-      // If there are errors but also results, log them but continue
       if (errors.length > 0) {
          console.warn(
-            `Batch operation completed with ${errors.length} errors out of ${items.length} items`
+            `Batch completed with ${errors.length}/${items.length} errors`
          );
       }
 
       return results;
    }
 
-   /**
-    * Validation methods that your API services use
-    */
+   // Validation methods
    protected validateIdentifier(
       identifier: string | number,
       name: string
@@ -127,9 +118,7 @@ export class BaseService {
       Validator.validatePaginationParams(offset, limit);
    }
 
-   /**
-    * URL utility methods that your API services use
-    */
+   // URL utility methods
    protected extractIdFromUrl(url: string): number | null {
       return UrlUtils.extractIdFromUrl(url);
    }
@@ -158,21 +147,27 @@ export class BaseService {
       return this.networkManager.checkConnection();
    }
 
-   /**
-    * Get service health status
-    */
-   getHealthStatus() {
+   getHealthStatus(): ServiceHealth {
       return {
          isHealthy: this.networkManager.isOnline(),
          networkStatus: this.networkManager.isOnline(),
          lastCheck: new Date().toISOString(),
+         cacheInfo: {
+            ttl: 5 * 60 * 1000,
+            maxItems: 100,
+         },
+         retryConfig: {
+            attempts: 3,
+            delay: 1000,
+         },
       };
    }
 
-   /**
-    * Clear cache method for consistency
-    */
    clearCache(): void {
       console.log("Cache clear requested - will expire naturally via TTL");
+   }
+
+   cleanup(): void {
+      this.networkManager.cleanup();
    }
 }

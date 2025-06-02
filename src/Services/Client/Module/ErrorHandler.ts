@@ -13,7 +13,8 @@ export class ErrorHandler {
       if (
          lowerMessage.includes("network") ||
          lowerMessage.includes("connection") ||
-         lowerMessage.includes("timeout")
+         lowerMessage.includes("timeout") ||
+         lowerMessage.includes("fetch")
       ) {
          return {
             message,
@@ -40,11 +41,26 @@ export class ErrorHandler {
          };
       }
 
+      // Server errors - retryable
+      if (
+         lowerMessage.includes("500") ||
+         lowerMessage.includes("502") ||
+         lowerMessage.includes("503")
+      ) {
+         return {
+            message,
+            isRetryable: true,
+            userMessage: "Server temporarily unavailable. Please try again.",
+         };
+      }
+
       // Default error
       return {
          message,
          isRetryable: false,
-         userMessage: "Something went wrong. Please try again.",
+         userMessage: context
+            ? `${context}: Something went wrong.`
+            : "Something went wrong. Please try again.",
       };
    }
 }
