@@ -11,9 +11,8 @@ import { RetryManager } from "./Module/RetryManager";
 import { Validator } from "./Module/Validator";
 import { UrlUtils } from "./Module/UrlUtils";
 import { BatchProcessor } from "./Module/BatchProcessor";
-import { CacheManager } from "./Module/CacheManager";
+import { MobileCacheManager } from "./Module/MemoryManager"; // Use simplified version
 import { NetworkManager } from "./Module/NetworkManager";
-import { MemoryManager } from "./Module/MemoryManager";
 import { OfflineStorage } from "./Module/OfflineStorage";
 import { ErrorHandler } from "./Module/ErrorHandler";
 
@@ -21,32 +20,21 @@ export class BaseService {
    protected api: MainClient;
    private retryManager: RetryManager;
    private batchProcessor: BatchProcessor;
-   private cacheManager: CacheManager;
+   private cacheManager: MobileCacheManager; // Use mobile-optimized version
    private networkManager: NetworkManager;
-   private memoryManager: MemoryManager;
 
    constructor(config: ServiceConfig = {}) {
       const {
-         cacheOptions = { ttl: 5 * 60 * 1000, maxItems: 200 }, // Mobile optimized
+         cacheOptions = { ttl: 5 * 60 * 1000, maxItems: 100 }, // Mobile optimized
          retryAttempts = 3,
          retryDelay = 1000,
       } = config;
 
       this.retryManager = new RetryManager(retryAttempts, retryDelay);
       this.batchProcessor = new BatchProcessor();
-      this.cacheManager = new CacheManager(cacheOptions);
+      this.cacheManager = new MobileCacheManager(cacheOptions);
       this.networkManager = new NetworkManager();
-      this.memoryManager = MemoryManager.getInstance();
       this.api = this.cacheManager.getClient();
-
-      this.setupMemoryWarning();
-   }
-
-   private setupMemoryWarning() {
-      this.memoryManager.addMemoryWarningListener(() => {
-         console.warn("Memory warning - clearing cache");
-         this.clearCache();
-      });
    }
 
    // ============= ENHANCED CORE API METHODS =============
@@ -122,7 +110,7 @@ export class BaseService {
       );
    }
 
-   // ============= CORE METHODS (Without Rate Limiting) =============
+   // ============= CORE METHODS =============
 
    protected async executeWithErrorHandling<T>(
       operation: () => Promise<T>,
@@ -141,7 +129,7 @@ export class BaseService {
    protected async batchOperation<T, R>(
       items: T[],
       operation: (item: T, index: number) => Promise<R>,
-      concurrency: number = 5, // Increased since no rate limiting
+      concurrency: number = 5,
       onProgress?: (completed: number, total: number) => void
    ): Promise<R[]> {
       if (!Array.isArray(items) || items.length === 0) {
@@ -165,7 +153,7 @@ export class BaseService {
    protected validatePaginationParams = Validator.validatePaginationParams;
    protected validateArray = Validator.validateArray;
 
-   // ============= ENHANCED CACHE & STORAGE MANAGEMENT =============
+   // ============= SIMPLIFIED CACHE & STORAGE MANAGEMENT =============
 
    clearCache(): void {
       this.cacheManager.clear();
@@ -191,7 +179,7 @@ export class BaseService {
       return this.networkManager.addListener(callback);
    }
 
-   // ============= ENHANCED HEALTH & MONITORING =============
+   // ============= HEALTH & MONITORING =============
 
    getServiceHealth(): ServiceHealth {
       const retryConfig = this.retryManager.getConfig();
@@ -199,19 +187,25 @@ export class BaseService {
 
       return {
          isHealthy: true,
-         requestCount: 0, // No longer tracking since no rate limiting
+         requestCount: 0,
          lastRequestTime: 0,
-         rateLimit: 0, // No rate limit
+         rateLimit: 0,
          cacheInfo: {
             ttl: cacheInfo.ttlMinutes,
-            maxItems: cacheInfo.maxItems || 200,
+            maxItems: cacheInfo.maxItems || 100,
          },
          retryConfig: {
             attempts: retryConfig.attempts,
             delay: retryConfig.delay,
          },
          networkStatus: this.networkManager.isOnline(),
-         memoryStatus: this.memoryManager.isMemoryLow() ? "low" : "normal",
+         memoryStatus: "normal", // Simplified - no complex memory tracking
       };
+   }
+
+   // Optional: Manual cleanup method for extreme cases
+   performCleanup(): void {
+      console.log("Performing manual cleanup");
+      this.clearCache();
    }
 }

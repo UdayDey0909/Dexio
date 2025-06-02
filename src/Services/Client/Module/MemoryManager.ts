@@ -2,8 +2,7 @@ import { CacheManager, CacheOptions } from "./CacheManager";
 
 export class MemoryManager {
    private static instance: MemoryManager;
-   private memoryWarningListeners: Set<() => void> = new Set();
-   private isLowMemory: boolean = false;
+   private cleanupCallbacks: Set<() => void> = new Set();
 
    static getInstance(): MemoryManager {
       if (!MemoryManager.instance) {
@@ -12,77 +11,36 @@ export class MemoryManager {
       return MemoryManager.instance;
    }
 
-   constructor() {
-      this.setupMemoryWarning();
+   // Simple callback registration for cleanup
+   addCleanupCallback(callback: () => void): () => void {
+      this.cleanupCallbacks.add(callback);
+      return () => this.cleanupCallbacks.delete(callback);
    }
 
-   private setupMemoryWarning() {
-      // React Native memory warning handling
-      if ((global as any).__DEV__) {
-         console.log("Memory manager initialized");
-      }
-   }
-
-   addMemoryWarningListener(callback: () => void) {
-      this.memoryWarningListeners.add(callback);
-      return () => this.memoryWarningListeners.delete(callback);
-   }
-
-   triggerMemoryCleanup() {
-      this.isLowMemory = true;
-      this.memoryWarningListeners.forEach((listener) => listener());
-   }
-
-   isMemoryLow(): boolean {
-      return this.isLowMemory;
-   }
-
-   resetMemoryStatus() {
-      this.isLowMemory = false;
+   // Manual cleanup trigger (for testing or explicit cleanup)
+   cleanup(): void {
+      console.log("Triggering memory cleanup");
+      this.cleanupCallbacks.forEach((callback) => callback());
    }
 }
 
-// Enhanced CacheManager with memory awareness
-export class EnhancedCacheManager extends CacheManager {
-   private memoryManager: MemoryManager;
-   private memoryCleanupListener?: () => void;
-
+// Simplified CacheManager - just use the base version with mobile-friendly defaults
+export class MobileCacheManager extends CacheManager {
    constructor(config: CacheOptions = {}) {
-      // Reduce default cache size for mobile
-      const mobileConfig = {
-         ttl: config.ttl || 5 * 60 * 1000, // 5 minutes instead of 10
-         maxItems: config.maxItems || 200, // 200 instead of 500
+      // Mobile-optimized defaults
+      const mobileConfig: CacheOptions = {
+         ttl: config.ttl || 5 * 60 * 1000, // 5 minutes
+         maxItems: config.maxItems || 100, // Reduced from 200 to 100
       };
 
       super(mobileConfig);
-      this.memoryManager = MemoryManager.getInstance();
-      this.setupMemoryWarning();
    }
 
-   private setupMemoryWarning() {
-      this.memoryCleanupListener = this.memoryManager.addMemoryWarningListener(
-         () => {
-            console.warn("Memory warning - clearing cache");
-            this.clear();
-         }
-      );
-   }
-
-   // Override with memory-conscious clearing
-   clear(): void {
-      super.clear();
-      if (this.memoryManager.isMemoryLow()) {
-         // Force garbage collection hints
-         if (global.gc) {
-            global.gc();
-         }
-         this.memoryManager.resetMemoryStatus();
-      }
-   }
-
-   destroy() {
-      if (this.memoryCleanupListener) {
-         this.memoryCleanupListener();
-      }
+   // Optional: Add a method to get current cache info for debugging
+   getCacheStats() {
+      return {
+         ...this.getInfo(),
+         message: "Cache configured for mobile usage",
+      };
    }
 }
