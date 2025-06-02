@@ -45,7 +45,7 @@ export class RetryManager {
       throw new Error(`${errorMessage}: ${errorDetails}`);
    }
 
-   private shouldRetry(error: Error): boolean {
+   protected shouldRetry(error: Error): boolean {
       const retryableErrors = [
          "network",
          "timeout",

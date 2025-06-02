@@ -1,3 +1,4 @@
+// src/Services/Client/MainClient.ts
 import { MainClient } from "pokenode-ts";
 import {
    ServiceConfig,
@@ -12,6 +13,10 @@ import { Validator } from "./Module/Validator";
 import { UrlUtils } from "./Module/UrlUtils";
 import { BatchProcessor } from "./Module/BatchProcessor";
 import { CacheManager } from "./Module/CacheManager";
+import { NetworkManager } from "./Module/NetworkManager";
+import { MemoryManager } from "./Module/MemoryManager";
+import { OfflineStorage } from "./Module/OfflineStorage";
+import { ErrorHandler } from "./Module/ErrorHandler";
 
 export class BaseService {
    protected api: MainClient;
@@ -19,11 +24,13 @@ export class BaseService {
    private retryManager: RetryManager;
    private batchProcessor: BatchProcessor;
    private cacheManager: CacheManager;
+   private networkManager: NetworkManager;
+   private memoryManager: MemoryManager;
 
    constructor(config: ServiceConfig = {}) {
       const {
-         rateLimit = 100,
-         cacheOptions = { ttl: 10 * 60 * 1000 },
+         rateLimit = 50, // Reduced for mobile
+         cacheOptions = { ttl: 5 * 60 * 1000, maxItems: 200 }, // Mobile optimized
          retryAttempts = 3,
          retryDelay = 1000,
       } = config;
@@ -32,15 +39,73 @@ export class BaseService {
       this.retryManager = new RetryManager(retryAttempts, retryDelay);
       this.batchProcessor = new BatchProcessor();
       this.cacheManager = new CacheManager(cacheOptions);
+      this.networkManager = new NetworkManager();
+      this.memoryManager = MemoryManager.getInstance();
       this.api = this.cacheManager.getClient();
+
+      this.setupMemoryWarning();
    }
 
-   // ============= CORE API METHODS =============
+   private setupMemoryWarning() {
+      this.memoryManager.addMemoryWarningListener(() => {
+         console.warn("Memory warning - clearing cache");
+         this.clearCache();
+      });
+   }
+
+   // ============= ENHANCED CORE API METHODS =============
 
    /**
-    * Generic method to get a resource by identifier with automatic retry
+    * Execute operation with full React Native support (network, offline, memory)
     */
-   protected async getResource<T>(
+   protected async executeWithFullSupport<T>(
+      operation: () => Promise<T>,
+      cacheKey: string,
+      errorMessage: string
+   ): Promise<T> {
+      try {
+         // Check network connectivity
+         if (!(await this.networkManager.checkConnection())) {
+            const cached = await OfflineStorage.retrieve<T>(cacheKey);
+            if (cached) {
+               console.log(`Using offline data for ${cacheKey}`);
+               return cached;
+            }
+            throw new Error(
+               "No network connection and no cached data available"
+            );
+         }
+
+         // Execute with error handling and retry
+         const result = await this.executeWithErrorHandling(
+            operation,
+            errorMessage
+         );
+
+         // Store for offline use (fire and forget)
+         OfflineStorage.store(cacheKey, result).catch((err) =>
+            console.warn("Failed to cache offline data:", err)
+         );
+
+         return result;
+      } catch (error) {
+         // Try offline fallback
+         const cached = await OfflineStorage.retrieve<T>(cacheKey);
+         if (cached) {
+            console.log(`Network failed, using offline data for ${cacheKey}`);
+            return cached;
+         }
+
+         // Transform error for better UX
+         const pokemonError = ErrorHandler.createError(error, errorMessage);
+         throw pokemonError;
+      }
+   }
+
+   /**
+    * Generic method to get a resource by identifier with full support
+    */
+   protected async getResourceWithFullSupport<T>(
       getByName: (name: string) => Promise<T>,
       getById: (id: number) => Promise<T>,
       identifier: string | number,
@@ -48,33 +113,20 @@ export class BaseService {
    ): Promise<T> {
       this.validateIdentifier(identifier, resourceType);
 
-      return this.executeWithErrorHandling(async () => {
-         return typeof identifier === "string"
-            ? await getByName(identifier.toLowerCase().trim())
-            : await getById(identifier);
-      }, `Failed to fetch ${resourceType}: ${identifier}`);
-   }
+      const cacheKey = `${resourceType}_${identifier}`;
 
-   /**
-    * Generic method to get paginated lists
-    */
-   protected async getResourceList<T>(
-      listFunction: (
-         offset: number,
-         limit: number
-      ) => Promise<PaginatedResponse<T>>,
-      resourceType: string,
-      { offset = 0, limit = 20 }: PaginationParams = {}
-   ): Promise<PaginatedResponse<T>> {
-      this.validatePaginationParams(offset, limit);
-
-      return this.executeWithErrorHandling(
-         async () => await listFunction(offset, limit),
-         `Failed to fetch ${resourceType} list`
+      return this.executeWithFullSupport(
+         async () => {
+            return typeof identifier === "string"
+               ? await getByName(identifier.toLowerCase().trim())
+               : await getById(identifier);
+         },
+         cacheKey,
+         `Failed to fetch ${resourceType}: ${identifier}`
       );
    }
 
-   // ============= ENHANCED OPERATIONS =============
+   // ============= EXISTING METHODS (Keep your current implementation) =============
 
    protected async executeWithErrorHandling<T>(
       operation: () => Promise<T>,
@@ -96,7 +148,7 @@ export class BaseService {
    protected async batchOperation<T, R>(
       items: T[],
       operation: (item: T, index: number) => Promise<R>,
-      concurrency: number = 5,
+      concurrency: number = 3, // Reduced for mobile
       onProgress?: (completed: number, total: number) => void
    ): Promise<R[]> {
       if (!Array.isArray(items) || items.length === 0) {
@@ -111,18 +163,16 @@ export class BaseService {
    }
 
    // ============= UTILITY METHODS =============
-
    protected extractIdFromUrl = UrlUtils.extractIdFromUrl;
    protected extractNameFromUrl = UrlUtils.extractNameFromUrl;
    protected buildApiUrl = UrlUtils.buildApiUrl;
    protected isValidApiUrl = UrlUtils.isValidApiUrl;
 
-   // Validation methods
    protected validateIdentifier = Validator.validateIdentifier;
    protected validatePaginationParams = Validator.validatePaginationParams;
    protected validateArray = Validator.validateArray;
 
-   // ============= CACHE MANAGEMENT =============
+   // ============= ENHANCED CACHE & STORAGE MANAGEMENT =============
 
    clearCache(): void {
       this.cacheManager.clear();
@@ -130,24 +180,26 @@ export class BaseService {
       this.rateLimiter.reset();
    }
 
-   getCacheInfo() {
-      const rateLimiterStats = this.rateLimiter.getStats();
-      const retryConfig = this.retryManager.getConfig();
-      const cacheInfo = this.cacheManager.getInfo();
-
-      return {
-         ...cacheInfo,
-         requestCount: rateLimiterStats.requestCount,
-         lastRequestTime:
-            rateLimiterStats.lastRequestTime > 0
-               ? new Date(rateLimiterStats.lastRequestTime).toISOString()
-               : null,
-         rateLimit: rateLimiterStats.rateLimit,
-         retryAttempts: retryConfig.attempts,
-      };
+   async clearOfflineStorage(): Promise<void> {
+      await OfflineStorage.clear();
    }
 
-   // ============= HEALTH & MONITORING =============
+   async clearAllStorage(): Promise<void> {
+      this.clearCache();
+      await this.clearOfflineStorage();
+   }
+
+   // ============= NETWORK & CONNECTION MANAGEMENT =============
+
+   async isOnline(): Promise<boolean> {
+      return this.networkManager.checkConnection();
+   }
+
+   addNetworkListener(callback: (isConnected: boolean) => void) {
+      return this.networkManager.addListener(callback);
+   }
+
+   // ============= ENHANCED HEALTH & MONITORING =============
 
    getServiceHealth(): ServiceHealth {
       const rateLimiterStats = this.rateLimiter.getStats();
@@ -161,12 +213,14 @@ export class BaseService {
          rateLimit: rateLimiterStats.rateLimit,
          cacheInfo: {
             ttl: cacheInfo.ttlMinutes,
-            maxItems: cacheInfo.maxItems || 500,
+            maxItems: cacheInfo.maxItems || 200,
          },
          retryConfig: {
             attempts: retryConfig.attempts,
             delay: retryConfig.delay,
          },
+         networkStatus: this.networkManager.isOnline(),
+         memoryStatus: this.memoryManager.isMemoryLow() ? "low" : "normal",
       };
    }
 }

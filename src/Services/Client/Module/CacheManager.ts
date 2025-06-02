@@ -62,3 +62,4 @@ export class CacheManager {
       };
    }
 }
+export { CacheOptions };
