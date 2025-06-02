@@ -27,14 +27,16 @@ export class BaseService {
          this.api = new MainClient({
             cacheOptions: { ttl: cacheTimeout },
          });
-      } catch {
+         console.log("BaseService API client initialized with cache");
+      } catch (error) {
+         console.warn("Cache initialization failed, using fallback:", error);
          this.api = new MainClient(); // Fallback without cache
       }
    }
 
    /**
     * Execute operation with retry and error handling
-    * This is the method your API services are calling
+    * FIXED: Keeping only this method, removed duplicate execute()
     */
    protected async executeWithErrorHandling<T>(
       operation: () => Promise<T>,
@@ -53,32 +55,30 @@ export class BaseService {
       }
    }
 
-   /**
-    * Legacy method name for backwards compatibility
-    */
-   protected async execute<T>(
-      operation: () => Promise<T>,
-      errorContext?: string
-   ): Promise<T> {
-      return this.executeWithErrorHandling(operation, errorContext);
-   }
+   // REMOVED: Duplicate execute() method - use executeWithErrorHandling() everywhere
 
    /**
     * Batch operations with concurrency control
-    * Renamed from batchProcess to match API service usage
+    * FIXED: Using consistent concurrency limit of 5 (mobile-friendly)
     */
    protected async batchOperation<T, R>(
       items: T[],
       operation: (item: T) => Promise<R>,
-      concurrency: number = 5
+      concurrency: number = 5 // Consistent default
    ): Promise<R[]> {
       if (!items?.length) return [];
+
+      // Validate batch size
+      Validator.validateArray(items, "Batch items");
+
+      // Ensure concurrency doesn't exceed our limits
+      const safeConcurrency = Math.min(concurrency, 10);
 
       const results: R[] = [];
       const errors: Array<{ item: T; error: Error }> = [];
 
-      for (let i = 0; i < items.length; i += concurrency) {
-         const batch = items.slice(i, i + concurrency);
+      for (let i = 0; i < items.length; i += safeConcurrency) {
+         const batch = items.slice(i, i + safeConcurrency);
          const batchResults = await Promise.allSettled(batch.map(operation));
 
          for (let j = 0; j < batchResults.length; j++) {
@@ -98,7 +98,7 @@ export class BaseService {
          }
 
          // Small delay between batches to prevent overwhelming the API
-         if (i + concurrency < items.length) {
+         if (i + safeConcurrency < items.length) {
             await new Promise((resolve) => setTimeout(resolve, 100));
          }
       }
@@ -167,5 +167,12 @@ export class BaseService {
          networkStatus: this.networkManager.isOnline(),
          lastCheck: new Date().toISOString(),
       };
+   }
+
+   /**
+    * Clear cache method for consistency
+    */
+   clearCache(): void {
+      console.log("Cache clear requested - will expire naturally via TTL");
    }
 }

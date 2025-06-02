@@ -36,11 +36,12 @@ export class Validator {
       }
    }
 
+   // FIXED: Reduced maxLength from 500 to 50 for mobile app efficiency
    static validateArray<T>(
       array: T[],
       name: string,
       minLength: number = 1,
-      maxLength: number = 500 // Increased from 100 to 500 since no rate limiting
+      maxLength: number = 50 // Reduced from 500 to 50
    ): void {
       if (!Array.isArray(array)) {
          throw new Error(`${name} must be an array`);
@@ -53,12 +54,13 @@ export class Validator {
       }
    }
 
+   // FIXED: Reduced max concurrency from 50 to 10 for mobile optimization
    static validateBatchOptions(options: BatchOperationOptions): void {
       if (
          options.concurrency &&
-         (options.concurrency < 1 || options.concurrency > 50) // Increased from 20 to 50
+         (options.concurrency < 1 || options.concurrency > 10) // Reduced from 50 to 10
       ) {
-         throw new Error("Concurrency must be between 1 and 50");
+         throw new Error("Concurrency must be between 1 and 10");
       }
    }
 }

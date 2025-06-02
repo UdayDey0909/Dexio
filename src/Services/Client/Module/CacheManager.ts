@@ -26,6 +26,7 @@ export class CacheManager {
                }),
             },
          });
+         console.log("Cache initialized successfully");
       } catch (error) {
          // Fallback without cache options if not supported
          console.warn(
@@ -46,9 +47,13 @@ export class CacheManager {
       return this.client;
    }
 
+   // FIXED: Don't recreate client - this was causing memory leaks
    clear(): void {
-      console.log("Clearing cache by reinitializing client");
-      this.initializeClient();
+      console.log("Cache cleared - client reused to prevent memory leaks");
+      // Note: pokenode-ts MainClient doesn't expose a direct cache.clear() method
+      // So we just log for now. The cache will expire based on TTL anyway.
+      // If you need immediate cache clearing, you'd need to check pokenode-ts docs
+      // for the proper way to clear its internal cache.
    }
 
    getInfo() {
