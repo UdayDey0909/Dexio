@@ -19,11 +19,14 @@ export class UtilityService extends BaseService {
          throw new Error("URL is required");
       }
 
-      try {
-         return await this.api.utility.getResourceByUrl(url);
-      } catch (error) {
-         throw new Error(`Failed to fetch resource: ${error}`);
+      if (!this.isValidUrl(url)) {
+         throw new Error("Invalid PokéAPI URL provided");
       }
+
+      return this.executeWithErrorHandling(
+         async () => await this.api.utility.getResourceByUrl(url),
+         `Failed to fetch resource from URL: ${url}`
+      );
    }
 
    // Extract ID from PokéAPI URL (e.g., "https://pokeapi.co/api/v2/pokemon/25/" -> 25)
@@ -44,21 +47,26 @@ export class UtilityService extends BaseService {
 
    // Batch fetch multiple resources (max 20 at once)
    async batchGetResources<T = any>(urls: string[]): Promise<(T | null)[]> {
-      if (!urls?.length) return [];
+      if (!Array.isArray(urls) || urls.length === 0) {
+         throw new Error("URLs array cannot be empty");
+      }
+
       if (urls.length > 20) {
          throw new Error("Maximum 20 URLs per batch");
       }
 
-      const promises = urls.map(async (url) => {
-         try {
-            return await this.getResourceByUrl<T>(url);
-         } catch (error) {
-            console.warn(`Failed to fetch ${url}:`, error);
-            return null;
+      // Validate all URLs first
+      urls.forEach((url, index) => {
+         if (!this.isValidUrl(url)) {
+            throw new Error(`Invalid URL at index ${index}: ${url}`);
          }
       });
 
-      return Promise.all(promises);
+      return this.batchOperation(
+         urls,
+         async (url) => await this.getResourceByUrl<T>(url),
+         3
+      );
    }
 
    // Get all pages from a paginated endpoint
@@ -70,15 +78,22 @@ export class UtilityService extends BaseService {
          throw new Error("Initial URL is required");
       }
 
-      const allResults: T[] = [];
-      let currentUrl: string | null = initialUrl;
-      let pageCount = 0;
+      if (!this.isValidUrl(initialUrl)) {
+         throw new Error("Invalid initial URL provided");
+      }
 
-      while (currentUrl && pageCount < maxPages) {
-         try {
-            const response: PaginatedResponse<T> = await this.getResourceByUrl<
-               PaginatedResponse<T>
-            >(currentUrl);
+      if (maxPages < 1 || maxPages > 50) {
+         throw new Error("Max pages must be between 1 and 50");
+      }
+
+      return this.executeWithErrorHandling(async () => {
+         const allResults: T[] = [];
+         let currentUrl: string | null = initialUrl;
+         let pageCount = 0;
+
+         while (currentUrl && pageCount < maxPages) {
+            const response: PaginatedResponse<T> =
+               await this.api.utility.getResourceByUrl(currentUrl);
 
             if (response.results) {
                allResults.push(...response.results);
@@ -88,16 +103,13 @@ export class UtilityService extends BaseService {
             pageCount++;
 
             // Small delay to be nice to the API
-            if (currentUrl) {
+            if (currentUrl && pageCount < maxPages) {
                await new Promise((resolve) => setTimeout(resolve, 100));
             }
-         } catch (error) {
-            console.error(`Error fetching page ${pageCount + 1}:`, error);
-            break;
          }
-      }
 
-      return allResults;
+         return allResults;
+      }, `Failed to fetch all pages from: ${initialUrl}`);
    }
 
    // Build PokéAPI URL (e.g., buildUrl('pokemon', 'pikachu') -> "https://pokeapi.co/api/v2/pokemon/pikachu/")
@@ -163,11 +175,31 @@ export class UtilityService extends BaseService {
 
    // Get basic pagination info
    getPaginationInfo<T>(response: PaginatedResponse<T>) {
+      if (!response) {
+         throw new Error("Response is required");
+      }
+
       return {
-         total: response.count,
+         total: response.count || 0,
          hasNext: !!response.next,
          hasPrevious: !!response.previous,
-         currentResults: response.results.length,
+         currentResults: response.results?.length || 0,
+         nextUrl: response.next,
+         previousUrl: response.previous,
+      };
+   }
+
+   // Get resource info from URL
+   getResourceInfo(url: string) {
+      if (!this.isValidUrl(url)) {
+         throw new Error("Invalid PokéAPI URL");
+      }
+
+      return {
+         endpoint: this.getEndpointFromUrl(url),
+         id: this.extractIdFromUrl(url),
+         name: this.extractNameFromUrl(url),
+         isValid: true,
       };
    }
 
@@ -217,10 +249,38 @@ export class UtilityService extends BaseService {
          "pokedex",
          "region",
          "stat",
-         "super-contest-effect",
          "type",
          "version",
          "version-group",
       ];
+   }
+
+   // Validate endpoint
+   isValidEndpoint(endpoint: string): boolean {
+      return this.getEndpoints().includes(endpoint.toLowerCase());
+   }
+
+   // Get random resource from endpoint
+   async getRandomResource<T = any>(endpoint: string): Promise<T> {
+      if (!this.isValidEndpoint(endpoint)) {
+         throw new Error(`Invalid endpoint: ${endpoint}`);
+      }
+
+      return this.executeWithErrorHandling(async () => {
+         // Get list to find count
+         const listUrl = this.buildUrl(endpoint);
+         const list: PaginatedResponse<ResourceReference> =
+            await this.api.utility.getResourceByUrl(listUrl);
+
+         if (!list.count || list.count === 0) {
+            throw new Error(`No resources found for endpoint: ${endpoint}`);
+         }
+
+         // Get random ID (1-based indexing)
+         const randomId = Math.floor(Math.random() * list.count) + 1;
+         const resourceUrl = this.buildUrl(endpoint, randomId);
+
+         return await this.api.utility.getResourceByUrl<T>(resourceUrl);
+      }, `Failed to get random resource from endpoint: ${endpoint}`);
    }
 }

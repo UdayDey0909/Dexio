@@ -14,9 +14,11 @@ export class TypeService extends BaseService {
       }, `Failed to fetch type: ${identifier}`);
    }
 
-   async getTypeList() {
+   async getTypeList(offset: number = 0, limit: number = 20) {
+      this.validatePaginationParams(offset, limit);
+
       return this.executeWithErrorHandling(
-         async () => await this.api.pokemon.listTypes(),
+         async () => await this.api.pokemon.listTypes(offset, limit),
          "Failed to fetch type list"
       );
    }
@@ -47,5 +49,90 @@ export class TypeService extends BaseService {
 
       const type = await this.getType(typeName);
       return type.moves;
+   }
+
+   async batchGetTypes(identifiers: (string | number)[]): Promise<Type[]> {
+      if (!Array.isArray(identifiers) || identifiers.length === 0) {
+         throw new Error("Identifiers array cannot be empty");
+      }
+
+      if (identifiers.length > 30) {
+         throw new Error("Batch size cannot exceed 30 types");
+      }
+
+      return this.batchOperation(
+         identifiers,
+         async (id) => await this.getType(id),
+         5
+      );
+   }
+
+   async getAllTypes(): Promise<Type[]> {
+      const typeNames = [
+         "normal",
+         "fire",
+         "water",
+         "electric",
+         "grass",
+         "ice",
+         "fighting",
+         "poison",
+         "ground",
+         "flying",
+         "psychic",
+         "bug",
+         "rock",
+         "ghost",
+         "dragon",
+         "dark",
+         "steel",
+         "fairy",
+      ];
+
+      return this.batchOperation(
+         typeNames,
+         async (name) => await this.getType(name),
+         6
+      );
+   }
+
+   async getTypeMatchups(attackingType: string, defendingType: string) {
+      this.validateIdentifier(attackingType, "Attacking type");
+      this.validateIdentifier(defendingType, "Defending type");
+
+      const type = await this.getType(attackingType);
+      const effectiveness = this.getTypeEffectiveness(attackingType);
+
+      // Check effectiveness against defending type
+      const isDoubleDamage = type.damage_relations.double_damage_to.some(
+         (t) => t.name === defendingType.toLowerCase()
+      );
+      const isHalfDamage = type.damage_relations.half_damage_to.some(
+         (t) => t.name === defendingType.toLowerCase()
+      );
+      const isNoDamage = type.damage_relations.no_damage_to.some(
+         (t) => t.name === defendingType.toLowerCase()
+      );
+
+      let multiplier = 1;
+      let effectiveness_text = "normal";
+
+      if (isDoubleDamage) {
+         multiplier = 2;
+         effectiveness_text = "super_effective";
+      } else if (isHalfDamage) {
+         multiplier = 0.5;
+         effectiveness_text = "not_very_effective";
+      } else if (isNoDamage) {
+         multiplier = 0;
+         effectiveness_text = "no_effect";
+      }
+
+      return {
+         attackingType,
+         defendingType,
+         multiplier,
+         effectiveness: effectiveness_text,
+      };
    }
 }
