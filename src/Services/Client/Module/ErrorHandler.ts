@@ -1,10 +1,29 @@
+/**
+ * Represents a standardized error format for Pokémon-related operations.
+ */
 export interface PokemonError {
+   /** Raw error message */
    message: string;
+
+   /** Indicates whether the error can be retried */
    isRetryable: boolean;
+
+   /** A user-friendly message suitable for UI display */
    userMessage: string;
 }
 
+/**
+ * Centralized error handler for processing various error types and returning
+ * structured, user-friendly error responses.
+ */
 export class ErrorHandler {
+   /**
+    * Handles unknown errors and maps them to a standardized `PokemonError` object.
+    *
+    * @param error - The error to handle (can be any type).
+    * @param context - Optional context string to prefix user messages.
+    * @returns A `PokemonError` object with retryable flag and user-friendly message.
+    */
    static handle(error: unknown, context?: string): PokemonError {
       const message = error instanceof Error ? error.message : String(error);
       const lowerMessage = message.toLowerCase();
