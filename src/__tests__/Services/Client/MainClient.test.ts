@@ -1,5 +1,5 @@
 // __tests__/Services/Client/MainClient.test.ts
-import { BaseService } from "@/Services/Client/MainClient";
+import { BaseService } from "@/Services/Client/BaseService";
 import { MainClient } from "pokenode-ts";
 import { RetryManager } from "@/Services/Client/Module/RetryManager";
 import { NetworkManager } from "@/Services/Client/Module/NetworkManager";
