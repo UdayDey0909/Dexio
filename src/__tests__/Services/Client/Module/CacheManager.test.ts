@@ -5,7 +5,6 @@ import { MainClient } from "pokenode-ts";
 jest.mock("pokenode-ts");
 
 describe("CacheManager", () => {
-   let cacheManager: CacheManager;
    let mockMainClient: jest.Mocked<MainClient>;
 
    beforeEach(() => {
@@ -15,12 +14,12 @@ describe("CacheManager", () => {
       (MainClient as jest.MockedClass<typeof MainClient>).mockImplementation(
          () => mockMainClient
       );
-
-      cacheManager = new CacheManager();
    });
 
    describe("Constructor", () => {
       it("should initialize with default config", () => {
+         new CacheManager();
+
          expect(MainClient).toHaveBeenCalledWith({
             cacheOptions: {
                ttl: 300000, // 5 minutes
@@ -67,6 +66,7 @@ describe("CacheManager", () => {
 
    describe("getClient", () => {
       it("should return the MainClient instance", () => {
+         const cacheManager = new CacheManager();
          const client = cacheManager.getClient();
 
          expect(client).toBe(mockMainClient);
@@ -76,6 +76,7 @@ describe("CacheManager", () => {
    describe("clear", () => {
       it("should log cache clear message", () => {
          const consoleSpy = jest.spyOn(console, "log").mockImplementation();
+         const cacheManager = new CacheManager();
 
          cacheManager.clear();
 
@@ -89,6 +90,7 @@ describe("CacheManager", () => {
 
    describe("getInfo", () => {
       it("should return cache info with default config", () => {
+         const cacheManager = new CacheManager();
          const info = cacheManager.getInfo();
 
          expect(info).toEqual({
@@ -149,13 +151,22 @@ describe("CacheManager", () => {
          expect(info.maxItems).toBe(100); // Default value
       });
 
-      it("should handle zero TTL", () => {
+      it("should handle zero TTL (falls back to default)", () => {
          const manager = new CacheManager({ ttl: 0 });
          const info = manager.getInfo();
 
-         expect(info.ttl).toBe("0 minutes");
-         expect(info.ttlMinutes).toBe(0);
-         expect(info.ttlMs).toBe(0);
+         // Zero TTL falls back to default due to || operator
+         expect(info.ttl).toBe("5 minutes");
+         expect(info.ttlMinutes).toBe(5);
+         expect(info.ttlMs).toBe(300000);
+      });
+
+      it("should handle explicit null TTL", () => {
+         const manager = new CacheManager({ ttl: null as any });
+         const info = manager.getInfo();
+
+         expect(info.ttl).toBe("5 minutes");
+         expect(info.maxItems).toBe(100);
       });
    });
 });

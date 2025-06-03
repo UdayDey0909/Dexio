@@ -61,6 +61,12 @@ describe("BaseService", () => {
 
    describe("Constructor", () => {
       it("should initialize with default config", () => {
+         // Clear the call count from beforeEach setup
+         jest.clearAllMocks();
+
+         // Create a new instance to test
+         new BaseService();
+
          expect(MainClient).toHaveBeenCalledWith({
             cacheOptions: { ttl: 300000 }, // 5 minutes
          });
@@ -69,6 +75,9 @@ describe("BaseService", () => {
       });
 
       it("should initialize with custom config", () => {
+         // Clear the call count from beforeEach setup
+         jest.clearAllMocks();
+
          const config = {
             maxRetries: 5,
             retryDelay: 2000,
@@ -84,7 +93,12 @@ describe("BaseService", () => {
       });
 
       it("should handle cache initialization failure", () => {
+         // Clear the call count from beforeEach setup
+         jest.clearAllMocks();
+
          const consoleSpy = jest.spyOn(console, "warn").mockImplementation();
+
+         // Setup the mock to fail on first call, succeed on second
          (MainClient as jest.MockedClass<typeof MainClient>)
             .mockImplementationOnce(() => {
                throw new Error("Cache failed");
