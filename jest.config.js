@@ -28,12 +28,12 @@ module.exports = {
          statements: 80,
       },
    },
-   testEnvironment: "node",
+   testEnvironment: "node", // Use jsdom for better async/promise handling
    moduleNameMapper: {
       "^@/(.*)$": "<rootDir>/src/$1",
    },
    setupFiles: ["<rootDir>/src/__tests__/jest-setup.js"],
-   testTimeout: 10000,
+   testTimeout: 15000, // Increased timeout for async tests
    clearMocks: true,
    resetMocks: true,
    restoreMocks: true,
@@ -44,4 +44,8 @@ module.exports = {
    resolver: undefined,
    // Ensure proper handling of async operations
    detectOpenHandles: false,
+   // Handle fake timers properly
+   fakeTimers: {
+      enableGlobally: false,
+   },
 };

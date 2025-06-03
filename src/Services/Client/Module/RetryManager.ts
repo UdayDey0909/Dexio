@@ -10,23 +10,26 @@ export class RetryManager {
    }
 
    async executeWithRetry<T>(
-      operation: () => Promise<T>,
+      operation: () => Promise<T> | T,
       errorMessage?: string
    ): Promise<T> {
       let lastError: Error;
 
       for (let attempt = 1; attempt <= this.maxAttempts; attempt++) {
          try {
-            return await operation();
+            const result = await Promise.resolve(operation());
+            return result;
          } catch (error) {
             lastError =
                error instanceof Error ? error : new Error(String(error));
 
+            // Always check if error is retryable for consistent error handling
+            const pokemonError = ErrorHandler.handle(lastError, errorMessage);
+
             // Don't retry on last attempt
             if (attempt === this.maxAttempts) break;
 
-            // Check if error is retryable
-            const pokemonError = ErrorHandler.handle(lastError, errorMessage);
+            // Only continue retrying if error is retryable
             if (pokemonError.isRetryable) {
                const delay = Math.max(
                   0,
