@@ -1,5 +1,6 @@
 import { BaseService } from "../Client";
 import type { Ability } from "pokenode-ts";
+import type { AbilityDetails } from "../Hooks/Ability/";
 
 export class AbilityService extends BaseService {
    async getAbility(identifier: string | number): Promise<Ability> {
@@ -23,10 +24,11 @@ export class AbilityService extends BaseService {
       );
    }
 
-   async getAbilityDetails(abilityName: string) {
+   async getAbilityDetails(abilityName: string): Promise<AbilityDetails> {
       this.validateIdentifier(abilityName, "Ability name");
 
       const ability = await this.getAbility(abilityName);
+
       return {
          ...ability,
          pokemonWithAbility: ability.pokemon,
