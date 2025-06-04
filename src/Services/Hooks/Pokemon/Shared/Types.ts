@@ -27,7 +27,7 @@ export interface PokemonDetails extends Pokemon {
    }[];
    generationInfo?: {
       generation: string;
-      generationId?: number;
+      generationId: number | null;
       isLegendary: boolean;
       isMythical: boolean;
       captureRate: number;

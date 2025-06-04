@@ -7,7 +7,6 @@ import type {
 import {
    updatePokemonSearchState,
    handleError,
-   useMemoizedSearchQuery,
    useAbortController,
 } from "./Shared/Types";
 
@@ -43,7 +42,7 @@ export const usePokemonSearch = (): UsePokemonSearchReturn => {
 
          try {
             const results = await pokemonService.searchPokemonByPartialName(
-               normalizedQuery,
+               normalizedQuery.toLowerCase(), // Apply lowercase transformation here instead
                Math.min(Math.max(1, limit), 100) // Ensure limit is between 1-100
             );
 
