@@ -1,15 +1,20 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { pokemonService } from "../../API";
-import type { UsePokemonState, UsePokemonReturn } from "./Shared/Types";
+import type {
+   UsePokemonSpeciesState,
+   UsePokemonSpeciesReturn,
+} from "./Shared/Types";
 import {
-   updatePokemonState,
+   updatePokemonSpeciesState,
    handleError,
    useMemoizedIdentifier,
    useAbortController,
 } from "./Shared/Types";
 
-export const usePokemon = (identifier?: string | number): UsePokemonReturn => {
-   const [state, setState] = useState<UsePokemonState>({
+export const usePokemonSpecies = (
+   identifier?: string | number
+): UsePokemonSpeciesReturn => {
+   const [state, setState] = useState<UsePokemonSpeciesState>({
       data: null,
       loading: false,
       error: null,
@@ -22,24 +27,27 @@ export const usePokemon = (identifier?: string | number): UsePokemonReturn => {
    const { getController, abort } = useAbortController();
 
    // Fetch function
-   const fetchPokemon = useCallback(
+   const fetchPokemonSpecies = useCallback(
       async (id: string | number) => {
          // Cancel previous request
          abort();
          const controller = getController();
 
-         updatePokemonState(setState, { loading: true, error: null });
+         updatePokemonSpeciesState(setState, { loading: true, error: null });
 
          try {
-            const pokemon = await pokemonService.getPokemon(id);
+            const species = await pokemonService.getPokemonSpecies(id);
 
             // Check if request was aborted
             if (!controller.signal.aborted) {
-               updatePokemonState(setState, { data: pokemon, loading: false });
+               updatePokemonSpeciesState(setState, {
+                  data: species,
+                  loading: false,
+               });
             }
          } catch (error) {
             if (!controller.signal.aborted) {
-               updatePokemonState(setState, {
+               updatePokemonSpeciesState(setState, {
                   data: null,
                   loading: false,
                   error: handleError(error),
@@ -53,21 +61,21 @@ export const usePokemon = (identifier?: string | number): UsePokemonReturn => {
    // Refetch function
    const refetch = useCallback(() => {
       if (normalizedIdentifier) {
-         fetchPokemon(normalizedIdentifier);
+         fetchPokemonSpecies(normalizedIdentifier);
       }
-   }, [normalizedIdentifier, fetchPokemon]);
+   }, [normalizedIdentifier, fetchPokemonSpecies]);
 
    // Effect for initial fetch
    useEffect(() => {
       if (normalizedIdentifier) {
-         fetchPokemon(normalizedIdentifier);
+         fetchPokemonSpecies(normalizedIdentifier);
       }
 
       // Cleanup on unmount
       return () => {
          abort();
       };
-   }, [normalizedIdentifier, fetchPokemon, abort]);
+   }, [normalizedIdentifier, fetchPokemonSpecies, abort]);
 
    // Memoized return to prevent unnecessary re-renders
    return useMemo(() => ({ ...state, refetch }), [state, refetch]);

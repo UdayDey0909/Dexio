@@ -1,45 +1,53 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { pokemonService } from "../../API";
-import type { UsePokemonState, UsePokemonReturn } from "./Shared/Types";
+import type {
+   UsePokemonStatsState,
+   UsePokemonStatsReturn,
+} from "./Shared/Types";
 import {
-   updatePokemonState,
+   updatePokemonStatsState,
    handleError,
    useMemoizedIdentifier,
    useAbortController,
 } from "./Shared/Types";
 
-export const usePokemon = (identifier?: string | number): UsePokemonReturn => {
-   const [state, setState] = useState<UsePokemonState>({
+export const usePokemonStats = (
+   pokemonName?: string
+): UsePokemonStatsReturn => {
+   const [state, setState] = useState<UsePokemonStatsState>({
       data: null,
       loading: false,
       error: null,
    });
 
-   // Memoize normalized identifier
-   const normalizedIdentifier = useMemoizedIdentifier(identifier);
+   // Memoize normalized identifier (only strings for stats)
+   const normalizedName = useMemoizedIdentifier(pokemonName);
 
    // Abort controller for request cancellation
    const { getController, abort } = useAbortController();
 
    // Fetch function
-   const fetchPokemon = useCallback(
-      async (id: string | number) => {
+   const fetchPokemonStats = useCallback(
+      async (name: string) => {
          // Cancel previous request
          abort();
          const controller = getController();
 
-         updatePokemonState(setState, { loading: true, error: null });
+         updatePokemonStatsState(setState, { loading: true, error: null });
 
          try {
-            const pokemon = await pokemonService.getPokemon(id);
+            const stats = await pokemonService.getPokemonStats(name);
 
             // Check if request was aborted
             if (!controller.signal.aborted) {
-               updatePokemonState(setState, { data: pokemon, loading: false });
+               updatePokemonStatsState(setState, {
+                  data: stats,
+                  loading: false,
+               });
             }
          } catch (error) {
             if (!controller.signal.aborted) {
-               updatePokemonState(setState, {
+               updatePokemonStatsState(setState, {
                   data: null,
                   loading: false,
                   error: handleError(error),
@@ -52,22 +60,22 @@ export const usePokemon = (identifier?: string | number): UsePokemonReturn => {
 
    // Refetch function
    const refetch = useCallback(() => {
-      if (normalizedIdentifier) {
-         fetchPokemon(normalizedIdentifier);
+      if (normalizedName && typeof normalizedName === "string") {
+         fetchPokemonStats(normalizedName);
       }
-   }, [normalizedIdentifier, fetchPokemon]);
+   }, [normalizedName, fetchPokemonStats]);
 
    // Effect for initial fetch
    useEffect(() => {
-      if (normalizedIdentifier) {
-         fetchPokemon(normalizedIdentifier);
+      if (normalizedName && typeof normalizedName === "string") {
+         fetchPokemonStats(normalizedName);
       }
 
       // Cleanup on unmount
       return () => {
          abort();
       };
-   }, [normalizedIdentifier, fetchPokemon, abort]);
+   }, [normalizedName, fetchPokemonStats, abort]);
 
    // Memoized return to prevent unnecessary re-renders
    return useMemo(() => ({ ...state, refetch }), [state, refetch]);
