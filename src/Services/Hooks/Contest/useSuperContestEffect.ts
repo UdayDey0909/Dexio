@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { contestService } from "../../API";
 import {
    UseSuperContestEffectState,
@@ -16,27 +16,38 @@ export const useSuperContestEffect = (
       error: null,
    });
 
+   // Track if component is mounted to prevent state updates on unmounted components
+   const isMountedRef = useRef(true);
+
    // Memoize normalized ID
    const normalizedId = useMemo(() => {
       return id && typeof id === "number" && id > 0 ? id : null;
    }, [id]);
 
-   // Fetch function
+   // Fetch function with cancellation support
    const fetchSuperContestEffect = useCallback(async (effectId: number) => {
+      if (!isMountedRef.current) return;
+
       updateSuperContestEffectState(setState, { loading: true, error: null });
 
       try {
          const effect = await contestService.getSuperContestEffect(effectId);
-         updateSuperContestEffectState(setState, {
-            data: effect,
-            loading: false,
-         });
+
+         // Only update state if component is still mounted
+         if (isMountedRef.current) {
+            updateSuperContestEffectState(setState, {
+               data: effect,
+               loading: false,
+            });
+         }
       } catch (error) {
-         updateSuperContestEffectState(setState, {
-            data: null,
-            loading: false,
-            error: handleError(error),
-         });
+         if (isMountedRef.current) {
+            updateSuperContestEffectState(setState, {
+               data: null,
+               loading: false,
+               error: handleError(error),
+            });
+         }
       }
    }, []);
 
@@ -53,6 +64,13 @@ export const useSuperContestEffect = (
          fetchSuperContestEffect(normalizedId);
       }
    }, [normalizedId, fetchSuperContestEffect]);
+
+   // Cleanup effect
+   useEffect(() => {
+      return () => {
+         isMountedRef.current = false;
+      };
+   }, []);
 
    // Memoized return
    return useMemo(() => ({ ...state, refetch }), [state, refetch]);
