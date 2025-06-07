@@ -1,94 +1,179 @@
-import type { NamedAPIResourceList } from "pokenode-ts";
+import { useMemo, useCallback } from "react";
+import type {
+   Berry,
+   BerryFlavor,
+   BerryFirmness,
+   NamedAPIResource,
+   NamedAPIResourceList,
+} from "pokenode-ts";
 
-export interface UseResourceState<T> {
+// Base hook state interface
+export interface BaseHookState<T> {
    data: T | null;
    loading: boolean;
    error: string | null;
 }
 
-export interface UseResourceListState<T> {
-   data: T[];
-   loading: boolean;
-   error: string | null;
-   hasMore: boolean;
+// Specific hook state interfaces
+export interface UseBerryState extends BaseHookState<Berry> {}
+
+export interface UseBerryFlavorState extends BaseHookState<BerryFlavor> {}
+
+export interface UseBerryFirmnessState extends BaseHookState<BerryFirmness> {}
+
+export interface UseBerryListState
+   extends BaseHookState<NamedAPIResourceList["results"]> {}
+
+export interface UseBerryFlavorListState
+   extends BaseHookState<NamedAPIResourceList["results"]> {}
+
+export interface UseBerryFirmnessListState
+   extends BaseHookState<NamedAPIResourceList["results"]> {}
+
+export interface UseBerriesByFlavorState
+   extends BaseHookState<NamedAPIResource[]> {}
+
+// Hook return types
+export interface UseBerryReturn extends UseBerryState {
+   refetch: () => void;
 }
 
-export interface UseResourceListOptions {
-   initialOffset?: number;
-   limit?: number;
-   autoFetch?: boolean;
+export interface UseBerryFlavorReturn extends UseBerryFlavorState {
+   refetch: () => void;
 }
 
-export interface UseResourceListReturn<T> extends UseResourceListState<T> {
-   loadMore: () => void;
-   refresh: () => void;
+export interface UseBerryFirmnessReturn extends UseBerryFirmnessState {
+   refetch: () => void;
 }
 
-export interface UseResourceReturn<T> extends UseResourceState<T> {
-   refetch?: () => void;
+export interface UseBerryListReturn extends UseBerryListState {
+   refetch: () => void;
 }
 
-// Generic service interface for consistent API
-export interface ResourceService<T> {
-   get: (identifier: string | number) => Promise<T>;
-   getList: (offset?: number, limit?: number) => Promise<NamedAPIResourceList>;
+export interface UseBerryFlavorListReturn extends UseBerryFlavorListState {
+   refetch: () => void;
 }
 
-// Error handling utility
-export const createErrorMessage = (
-   error: unknown,
-   fallback: string
-): string => {
-   return error instanceof Error ? error.message : fallback;
+export interface UseBerryFirmnessListReturn extends UseBerryFirmnessListState {
+   refetch: () => void;
+}
+
+export interface UseBerriesByFlavorReturn extends UseBerriesByFlavorState {
+   refetch: () => void;
+}
+
+// Memoized utility function for error handling
+export const useErrorHandler = () => {
+   return useCallback((error: unknown): string => {
+      if (error instanceof Error) {
+         return error.message;
+      }
+      return "An unexpected error occurred";
+   }, []);
 };
 
-// State update helpers
-export const createLoadingState = <T>(
-   prevState: UseResourceState<T>
-): UseResourceState<T> => ({
-   ...prevState,
-   loading: true,
-   error: null,
-});
+// Regular error handler (for non-hook contexts)
+export const handleError = (error: unknown): string => {
+   if (error instanceof Error) {
+      return error.message;
+   }
+   return "An unexpected error occurred";
+};
 
-export const createSuccessState = <T>(data: T): UseResourceState<T> => ({
-   data,
-   loading: false,
-   error: null,
-});
+// Specific state updaters for each hook type
+export const updateBerryState = (
+   setState: React.Dispatch<React.SetStateAction<UseBerryState>>,
+   updates: Partial<UseBerryState>
+) => {
+   setState((prev) => ({ ...prev, ...updates }));
+};
 
-export const createErrorState = <T>(error: string): UseResourceState<T> => ({
-   data: null,
-   loading: false,
-   error,
-});
+export const updateBerryFlavorState = (
+   setState: React.Dispatch<React.SetStateAction<UseBerryFlavorState>>,
+   updates: Partial<UseBerryFlavorState>
+) => {
+   setState((prev) => ({ ...prev, ...updates }));
+};
 
-export const createListLoadingState = <T>(
-   prevState: UseResourceListState<T>
-): UseResourceListState<T> => ({
-   ...prevState,
-   loading: true,
-   error: null,
-});
+export const updateBerryFirmnessState = (
+   setState: React.Dispatch<React.SetStateAction<UseBerryFirmnessState>>,
+   updates: Partial<UseBerryFirmnessState>
+) => {
+   setState((prev) => ({ ...prev, ...updates }));
+};
 
-export const createListSuccessState = <T>(
-   data: T[],
-   hasMore: boolean,
-   reset: boolean = false,
-   prevData: T[] = []
-): UseResourceListState<T> => ({
-   data: reset ? data : [...prevData, ...data],
-   loading: false,
-   error: null,
-   hasMore,
-});
+export const updateBerryListState = (
+   setState: React.Dispatch<React.SetStateAction<UseBerryListState>>,
+   updates: Partial<UseBerryListState>
+) => {
+   setState((prev) => ({ ...prev, ...updates }));
+};
 
-export const createListErrorState = <T>(
-   error: string,
-   prevData: T[] = []
-): UseResourceListState<T> => ({
-   data: prevData,
-   loading: false,
-   error,
-   hasMore: false,
-});
+export const updateBerryFlavorListState = (
+   setState: React.Dispatch<React.SetStateAction<UseBerryFlavorListState>>,
+   updates: Partial<UseBerryFlavorListState>
+) => {
+   setState((prev) => ({ ...prev, ...updates }));
+};
+
+export const updateBerryFirmnessListState = (
+   setState: React.Dispatch<React.SetStateAction<UseBerryFirmnessListState>>,
+   updates: Partial<UseBerryFirmnessListState>
+) => {
+   setState((prev) => ({ ...prev, ...updates }));
+};
+
+export const updateBerriesByFlavorState = (
+   setState: React.Dispatch<React.SetStateAction<UseBerriesByFlavorState>>,
+   updates: Partial<UseBerriesByFlavorState>
+) => {
+   setState((prev) => ({ ...prev, ...updates }));
+};
+
+// Generic state updater with proper typing
+export const updateHookState = <T extends BaseHookState<any>>(
+   setState: React.Dispatch<React.SetStateAction<T>>,
+   updates: Partial<T>
+) => {
+   setState((prev) => ({ ...prev, ...updates }));
+};
+
+// Custom hook for memoizing API identifiers
+export const useMemoizedIdentifier = (identifier?: string | number) => {
+   return useMemo(() => {
+      if (!identifier) return null;
+      return typeof identifier === "string"
+         ? identifier.toLowerCase().trim()
+         : identifier;
+   }, [identifier]);
+};
+
+// Custom hook for memoizing pagination parameters
+export const useMemoizedPagination = (
+   offset: number = 0,
+   limit: number = 20
+) => {
+   return useMemo(
+      () => ({
+         offset: Math.max(0, offset),
+         limit: Math.min(Math.max(1, limit), 1000),
+      }),
+      [offset, limit]
+   );
+};
+
+// Performance monitoring utilities (optional)
+export const useRenderCounter = (name: string) => {
+   const renderCount = useMemo(() => {
+      let count = 0;
+      return () => {
+         count++;
+         if (__DEV__) {
+            console.log(`${name} rendered ${count} times`);
+         }
+         return count;
+      };
+   }, [name]);
+
+   renderCount();
+};

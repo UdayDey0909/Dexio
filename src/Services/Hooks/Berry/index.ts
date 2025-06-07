@@ -1,5 +1,3 @@
-// src/Services/Hooks/Berry/index.ts
-
 // Single resource hooks
 export { useBerry } from "./useBerry";
 export { useBerryFlavor } from "./useBerryFlavor";
