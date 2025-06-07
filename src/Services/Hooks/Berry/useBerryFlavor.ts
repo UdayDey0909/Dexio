@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { berryService } from "../../API";
-import { handleError, updateBerryFlavorState } from "./Shared/Types";
+import { handleError, useMemoizedIdentifier } from "./Shared/Types";
 import type { UseBerryFlavorState, UseBerryFlavorReturn } from "./Shared/Types";
 
 /**
@@ -24,32 +24,27 @@ export const useBerryFlavor = (
       error: null,
    });
 
-   // Memoize the normalized identifier to prevent unnecessary re-renders
-   const normalizedIdentifier = useMemo(() => {
-      if (!identifier) return null;
-      return typeof identifier === "string"
-         ? identifier.toLowerCase().trim()
-         : identifier;
-   }, [identifier]);
+   const normalizedIdentifier = useMemoizedIdentifier(identifier);
 
    /**
     * Fetches berry flavor data from the API
     * @param id - The berry flavor identifier (name or ID)
     */
    const fetchBerryFlavor = useCallback(async (id: string | number) => {
-      updateBerryFlavorState(setState, { loading: true, error: null });
+      setState((prev) => ({ ...prev, loading: true, error: null }));
 
       try {
          const flavor = await berryService.getBerryFlavor(id);
-         updateBerryFlavorState(setState, { data: flavor, loading: false });
+         setState((prev) => ({ ...prev, data: flavor, loading: false }));
       } catch (error) {
-         updateBerryFlavorState(setState, {
+         setState((prev) => ({
+            ...prev,
             data: null,
             loading: false,
             error: handleError(error),
-         });
+         }));
       }
-   }, []); // No dependencies as berryService is stable
+   }, []);
 
    /**
     * Refetches the current berry flavor data
@@ -66,7 +61,6 @@ export const useBerryFlavor = (
       }
    }, [normalizedIdentifier, fetchBerryFlavor]);
 
-   // Memoize the return object to prevent unnecessary re-renders of consuming components
    return useMemo(
       () => ({
          ...state,

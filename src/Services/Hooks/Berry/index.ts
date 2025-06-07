@@ -13,9 +13,18 @@ export { useBerriesByFlavor } from "./useBerriesByFlavor";
 
 // Re-export types for convenience
 export type {
-   UseResourceReturn,
-   UseResourceListReturn,
-   UseResourceState,
-   UseResourceListState,
-   UseResourceListOptions,
+   UseBerryReturn,
+   UseBerryFlavorReturn,
+   UseBerryFirmnessReturn,
+   UseBerryListReturn,
+   UseBerryFlavorListReturn,
+   UseBerryFirmnessListReturn,
+   UseBerriesByFlavorReturn,
+   UseBerryState,
+   UseBerryFlavorState,
+   UseBerryFirmnessState,
+   UseBerryListState,
+   UseBerryFlavorListState,
+   UseBerryFirmnessListState,
+   UseBerriesByFlavorState,
 } from "./Shared/Types";

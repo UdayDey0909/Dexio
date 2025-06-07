@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { berryService } from "../../API";
-import { handleError, updateBerryFirmnessState } from "./Shared/Types";
+import { handleError, useMemoizedIdentifier } from "./Shared/Types";
 import type {
    UseBerryFirmnessState,
    UseBerryFirmnessReturn,
@@ -27,32 +27,27 @@ export const useBerryFirmness = (
       error: null,
    });
 
-   // Memoize the normalized identifier to prevent unnecessary re-renders
-   const normalizedIdentifier = useMemo(() => {
-      if (!identifier) return null;
-      return typeof identifier === "string"
-         ? identifier.toLowerCase().trim()
-         : identifier;
-   }, [identifier]);
+   const normalizedIdentifier = useMemoizedIdentifier(identifier);
 
    /**
     * Fetches berry firmness data from the API
     * @param id - The berry firmness identifier (name or ID)
     */
    const fetchBerryFirmness = useCallback(async (id: string | number) => {
-      updateBerryFirmnessState(setState, { loading: true, error: null });
+      setState((prev) => ({ ...prev, loading: true, error: null }));
 
       try {
          const firmness = await berryService.getBerryFirmness(id);
-         updateBerryFirmnessState(setState, { data: firmness, loading: false });
+         setState((prev) => ({ ...prev, data: firmness, loading: false }));
       } catch (error) {
-         updateBerryFirmnessState(setState, {
+         setState((prev) => ({
+            ...prev,
             data: null,
             loading: false,
             error: handleError(error),
-         });
+         }));
       }
-   }, []); // No dependencies as berryService is stable
+   }, []);
 
    /**
     * Refetches the current berry firmness data
@@ -69,7 +64,6 @@ export const useBerryFirmness = (
       }
    }, [normalizedIdentifier, fetchBerryFirmness]);
 
-   // Memoize the return object to prevent unnecessary re-renders of consuming components
    return useMemo(
       () => ({
          ...state,

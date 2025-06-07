@@ -4,7 +4,7 @@ import type {
    UseBerryFirmnessListState,
    UseBerryFirmnessListReturn,
 } from "./Shared/Types";
-import { handleError, updateBerryFirmnessListState } from "./Shared/Types";
+import { handleError, useMemoizedPagination } from "./Shared/Types";
 
 /**
  * Custom hook for fetching a paginated list of Pokemon berry firmnesses
@@ -35,37 +35,31 @@ export const useBerryFirmnessList = (
       error: null,
    });
 
-   // Memoize pagination params to prevent unnecessary API calls
-   // Ensures offset is non-negative and limit is within reasonable bounds
-   const paginationParams = useMemo(
-      () => ({
-         offset: Math.max(0, offset),
-         limit: Math.min(Math.max(1, limit), 1000), // Min: 1, Max: 1000
-      }),
-      [offset, limit]
-   );
+   const paginationParams = useMemoizedPagination(offset, limit);
 
    /**
     * Fetches berry firmness list data from the API
     */
    const fetchBerryFirmnessList = useCallback(async () => {
-      updateBerryFirmnessListState(setState, { loading: true, error: null });
+      setState((prev) => ({ ...prev, loading: true, error: null }));
 
       try {
          const list = await berryService.getBerryFirmnessList(
             paginationParams.offset,
             paginationParams.limit
          );
-         updateBerryFirmnessListState(setState, {
+         setState((prev) => ({
+            ...prev,
             data: list.results || [],
             loading: false,
-         });
+         }));
       } catch (error) {
-         updateBerryFirmnessListState(setState, {
+         setState((prev) => ({
+            ...prev,
             data: [],
             loading: false,
             error: handleError(error),
-         });
+         }));
       }
    }, [paginationParams.offset, paginationParams.limit]);
 
@@ -80,7 +74,6 @@ export const useBerryFirmnessList = (
       fetchBerryFirmnessList();
    }, [fetchBerryFirmnessList]);
 
-   // Memoize the return object to prevent unnecessary re-renders of consuming components
    return useMemo(
       () => ({
          ...state,

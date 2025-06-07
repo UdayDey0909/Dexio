@@ -4,7 +4,7 @@ import type {
    UseBerriesByFlavorState,
    UseBerriesByFlavorReturn,
 } from "./Shared/Types";
-import { handleError, updateBerriesByFlavorState } from "./Shared/Types";
+import { handleError, useMemoizedIdentifier } from "./Shared/Types";
 
 /**
  * Custom hook for fetching berries by flavor name
@@ -27,36 +27,35 @@ export const useBerriesByFlavor = (
       error: null,
    });
 
-   // Memoize normalized flavor name to prevent unnecessary re-renders
-   const normalizedFlavorName = useMemo(() => {
-      return flavorName?.toLowerCase().trim() || null;
-   }, [flavorName]);
+   const normalizedFlavorName = useMemoizedIdentifier(flavorName);
 
    /**
     * Fetches berries by flavor data from the API
     * @param name - The flavor name to fetch berries for
     */
-   const fetchBerriesByFlavor = useCallback(async (name: string) => {
-      updateBerriesByFlavorState(setState, { loading: true, error: null });
+   const fetchBerriesByFlavor = useCallback(async (name: string | number) => {
+      setState((prev) => ({ ...prev, loading: true, error: null }));
 
       try {
-         const berries = await berryService.getBerriesByFlavor(name);
+         const berries = await berryService.getBerriesByFlavor(String(name));
          const namedBerries = berries.map((berry) => ({
             name: berry.berry.name,
             url: berry.berry.url,
          }));
-         updateBerriesByFlavorState(setState, {
+         setState((prev) => ({
+            ...prev,
             data: namedBerries,
             loading: false,
-         });
+         }));
       } catch (error) {
-         updateBerriesByFlavorState(setState, {
+         setState((prev) => ({
+            ...prev,
             data: null,
             loading: false,
             error: handleError(error),
-         });
+         }));
       }
-   }, []); // No dependencies as berryService is stable
+   }, []);
 
    /**
     * Refetches the current berries by flavor data
@@ -73,7 +72,6 @@ export const useBerriesByFlavor = (
       }
    }, [normalizedFlavorName, fetchBerriesByFlavor]);
 
-   // Memoize the return object to prevent unnecessary re-renders of consuming components
    return useMemo(
       () => ({
          ...state,

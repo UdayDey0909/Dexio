@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { berryService } from "../../API";
-import { handleError, updateBerryState } from "./Shared/Types";
+import { handleError, useMemoizedIdentifier } from "./Shared/Types";
 import type { UseBerryState, UseBerryReturn } from "./Shared/Types";
 
 /**
@@ -22,32 +22,27 @@ export const useBerry = (identifier?: string | number): UseBerryReturn => {
       error: null,
    });
 
-   // Memoize the normalized identifier to prevent unnecessary re-renders
-   const normalizedIdentifier = useMemo(() => {
-      if (!identifier) return null;
-      return typeof identifier === "string"
-         ? identifier.toLowerCase().trim()
-         : identifier;
-   }, [identifier]);
+   const normalizedIdentifier = useMemoizedIdentifier(identifier);
 
    /**
     * Fetches berry data from the API
     * @param id - The berry identifier (name or ID)
     */
    const fetchBerry = useCallback(async (id: string | number) => {
-      updateBerryState(setState, { loading: true, error: null });
+      setState((prev) => ({ ...prev, loading: true, error: null }));
 
       try {
          const berry = await berryService.getBerry(id);
-         updateBerryState(setState, { data: berry, loading: false });
+         setState((prev) => ({ ...prev, data: berry, loading: false }));
       } catch (error) {
-         updateBerryState(setState, {
+         setState((prev) => ({
+            ...prev,
             data: null,
             loading: false,
             error: handleError(error),
-         });
+         }));
       }
-   }, []); // No dependencies as berryService is stable
+   }, []);
 
    /**
     * Refetches the current berry data
@@ -64,7 +59,6 @@ export const useBerry = (identifier?: string | number): UseBerryReturn => {
       }
    }, [normalizedIdentifier, fetchBerry]);
 
-   // Memoize the return object to prevent unnecessary re-renders of consuming components
    return useMemo(
       () => ({
          ...state,
