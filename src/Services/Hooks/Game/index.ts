@@ -20,4 +20,26 @@ export { useVersionGroupList } from "./useVersionGroupList";
 
 // Special data hooks
 export { usePokemonByGeneration } from "./usePokemonByGeneration";
-export { usePokedexEntries } from "./usePokedex
+export { usePokedexEntries } from "./usePokedexEntries";
+
+// Export types
+export type {
+   UseGenerationReturn,
+   UseGenerationDetailsReturn,
+   UseGenerationListReturn,
+   UsePokedexReturn,
+   UsePokedexDetailsReturn,
+   UsePokedexListReturn,
+   UseVersionReturn,
+   UseVersionDetailsReturn,
+   UseVersionListReturn,
+   UseVersionGroupReturn,
+   UseVersionGroupDetailsReturn,
+   UseVersionGroupListReturn,
+   UsePokemonByGenerationReturn,
+   UsePokedexEntriesReturn,
+   GenerationDetails,
+   PokedexDetails,
+   VersionDetails,
+   VersionGroupDetails,
+} from "./Shared/Types";

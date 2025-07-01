@@ -7,6 +7,7 @@ import type {
    NamedAPIResourceList,
    PokemonSpecies,
    PokemonEntry,
+   NamedAPIResource,
 } from "pokenode-ts";
 
 // Base hook state interface
@@ -45,27 +46,27 @@ export interface UseGenerationState extends BaseHookState<Generation> {}
 export interface UseGenerationDetailsState
    extends BaseHookState<GenerationDetails> {}
 export interface UseGenerationListState
-   extends BaseHookState<NamedAPIResourceList["results"]> {}
+   extends BaseHookState<NamedAPIResource[]> {}
 
 export interface UsePokedexState extends BaseHookState<Pokedex> {}
 export interface UsePokedexDetailsState extends BaseHookState<PokedexDetails> {}
 export interface UsePokedexListState
-   extends BaseHookState<NamedAPIResourceList["results"]> {}
+   extends BaseHookState<NamedAPIResource[]> {}
 
 export interface UseVersionState extends BaseHookState<Version> {}
 export interface UseVersionDetailsState extends BaseHookState<VersionDetails> {}
 export interface UseVersionListState
-   extends BaseHookState<NamedAPIResourceList["results"]> {}
+   extends BaseHookState<NamedAPIResource[]> {}
 
 export interface UseVersionGroupState extends BaseHookState<VersionGroup> {}
 export interface UseVersionGroupDetailsState
    extends BaseHookState<VersionGroupDetails> {}
 export interface UseVersionGroupListState
-   extends BaseHookState<NamedAPIResourceList["results"]> {}
+   extends BaseHookState<NamedAPIResource[]> {}
 
-// Special data states
+// Special data states - Fixed types
 export interface UsePokemonByGenerationState
-   extends BaseHookState<PokemonSpecies[]> {}
+   extends BaseHookState<NamedAPIResource[]> {}
 export interface UsePokedexEntriesState extends BaseHookState<PokemonEntry[]> {}
 
 // Hook return types
@@ -130,6 +131,7 @@ export interface UsePokedexEntriesReturn extends UsePokedexEntriesState {
 // Error handling utility
 export const handleError = (error: unknown): string => {
    if (error instanceof Error) return error.message;
+   if (typeof error === "string") return error;
    return "An unexpected error occurred";
 };
 

@@ -29,6 +29,7 @@ export const usePokemonByGeneration = (
          const pokemonSpecies = await gameService.getPokemonByGeneration(
             genName
          );
+         // Fixed: pokemonSpecies is already NamedAPIResource[] from the API
          updatePokemonByGenerationState(setState, {
             data: pokemonSpecies,
             loading: false,

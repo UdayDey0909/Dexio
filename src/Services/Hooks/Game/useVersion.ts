@@ -1,16 +1,14 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { gameService } from "../../API";
-import type { UseGenerationState, UseGenerationReturn } from "./Shared/Types";
+import type { UseVersionState, UseVersionReturn } from "./Shared/Types";
 import {
-   updateGenerationState,
+   updateVersionState,
    handleError,
    useMemoizedIdentifier,
 } from "./Shared/Types";
 
-export const useGeneration = (
-   identifier?: string | number
-): UseGenerationReturn => {
-   const [state, setState] = useState<UseGenerationState>({
+export const useVersion = (identifier?: string | number): UseVersionReturn => {
+   const [state, setState] = useState<UseVersionState>({
       data: null,
       loading: false,
       error: null,
@@ -20,14 +18,14 @@ export const useGeneration = (
    const normalizedIdentifier = useMemoizedIdentifier(identifier);
 
    // Fetch function
-   const fetchGeneration = useCallback(async (id: string | number) => {
-      updateGenerationState(setState, { loading: true, error: null });
+   const fetchVersion = useCallback(async (id: string | number) => {
+      updateVersionState(setState, { loading: true, error: null });
 
       try {
-         const generation = await gameService.getGeneration(id);
-         updateGenerationState(setState, { data: generation, loading: false });
+         const version = await gameService.getVersion(id);
+         updateVersionState(setState, { data: version, loading: false });
       } catch (error) {
-         updateGenerationState(setState, {
+         updateVersionState(setState, {
             data: null,
             loading: false,
             error: handleError(error),
@@ -38,16 +36,16 @@ export const useGeneration = (
    // Refetch function
    const refetch = useCallback(() => {
       if (normalizedIdentifier) {
-         fetchGeneration(normalizedIdentifier);
+         fetchVersion(normalizedIdentifier);
       }
-   }, [normalizedIdentifier, fetchGeneration]);
+   }, [normalizedIdentifier, fetchVersion]);
 
    // Effect for initial fetch
    useEffect(() => {
       if (normalizedIdentifier) {
-         fetchGeneration(normalizedIdentifier);
+         fetchVersion(normalizedIdentifier);
       }
-   }, [normalizedIdentifier, fetchGeneration]);
+   }, [normalizedIdentifier, fetchVersion]);
 
    // Memoized return
    return useMemo(() => ({ ...state, refetch }), [state, refetch]);
