@@ -16,15 +16,52 @@ export { useRegionList } from "./useRegionList";
 // Specialty hooks
 export { useLocationsByRegion } from "./useLocationsByRegion";
 
-// Export types
+// Base types
+export type { BaseHookState } from "./Shared/Types";
+
+// Location types
 export type {
-   // Location types
+   LocationDetails,
+   UseLocationState,
+   UseLocationDetailsState,
+   UseLocationListState,
    UseLocationReturn,
    UseLocationDetailsReturn,
    UseLocationListReturn,
-   LocationDetails,
-   
-   // Location Area types
+} from "./Shared/Types";
+
+// Location Area types
+export type {
+   LocationAreaDetails,
+   UseLocationAreaState,
+   UseLocationAreaDetailsState,
+   UseLocationAreaListState,
    UseLocationAreaReturn,
    UseLocationAreaDetailsReturn,
-   UseLocation
+   UseLocationAreaListReturn,
+} from "./Shared/Types";
+
+// Region types
+export type {
+   RegionDetails,
+   UseRegionState,
+   UseRegionDetailsState,
+   UseRegionListState,
+   UseRegionReturn,
+   UseRegionDetailsReturn,
+   UseRegionListReturn,
+} from "./Shared/Types";
+
+// Specialty types
+export type {
+   UseLocationsByRegionState,
+   UseLocationsByRegionReturn,
+} from "./Shared/Types";
+
+// Utility functions (if needed by consumers)
+export {
+   handleError,
+   useMemoizedIdentifier,
+   useMemoizedPagination,
+   useMemoizedRegionName,
+} from "./Shared/Types";
