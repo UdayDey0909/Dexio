@@ -1,59 +1,56 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { gameService } from "../../API";
-import type {
-   UseVersionGroupState,
-   UseVersionGroupReturn,
-} from "./Shared/Types";
+import type { UseVersionListState, UseVersionListReturn } from "./Shared/Types";
 import {
-   updateVersionGroupState,
+   updateVersionListState,
    handleError,
-   useMemoizedIdentifier,
+   useMemoizedPagination,
 } from "./Shared/Types";
 
-export const useVersionGroup = (
-   identifier?: string | number
-): UseVersionGroupReturn => {
-   const [state, setState] = useState<UseVersionGroupState>({
-      data: null,
+export const useVersionList = (
+   offset: number = 0,
+   limit: number = 20
+): UseVersionListReturn => {
+   const [state, setState] = useState<UseVersionListState>({
+      data: [],
       loading: false,
       error: null,
    });
 
-   // Memoize normalized identifier
-   const normalizedIdentifier = useMemoizedIdentifier(identifier);
+   // Memoize pagination params
+   const paginationParams = useMemoizedPagination(offset, limit);
 
    // Fetch function
-   const fetchVersionGroup = useCallback(async (id: string | number) => {
-      updateVersionGroupState(setState, { loading: true, error: null });
+   const fetchVersionList = useCallback(async () => {
+      updateVersionListState(setState, { loading: true, error: null });
 
       try {
-         const versionGroup = await gameService.getVersionGroup(id);
-         updateVersionGroupState(setState, {
-            data: versionGroup,
+         const list = await gameService.getVersionList(
+            paginationParams.offset,
+            paginationParams.limit
+         );
+         updateVersionListState(setState, {
+            data: list.results || [],
             loading: false,
          });
       } catch (error) {
-         updateVersionGroupState(setState, {
-            data: null,
+         updateVersionListState(setState, {
+            data: [],
             loading: false,
             error: handleError(error),
          });
       }
-   }, []);
+   }, [paginationParams.offset, paginationParams.limit]);
 
    // Refetch function
    const refetch = useCallback(() => {
-      if (normalizedIdentifier) {
-         fetchVersionGroup(normalizedIdentifier);
-      }
-   }, [normalizedIdentifier, fetchVersionGroup]);
+      fetchVersionList();
+   }, [fetchVersionList]);
 
    // Effect for initial fetch
    useEffect(() => {
-      if (normalizedIdentifier) {
-         fetchVersionGroup(normalizedIdentifier);
-      }
-   }, [normalizedIdentifier, fetchVersionGroup]);
+      fetchVersionList();
+   }, [fetchVersionList]);
 
    // Memoized return
    return useMemo(() => ({ ...state, refetch }), [state, refetch]);
