@@ -39,7 +39,8 @@ export class ItemService extends BaseService {
          isConsumable:
             item.attributes?.some((attr) => attr.name === "consumable") ||
             false,
-         generationName: item.generation?.name || null,
+         // Remove the generation property since it doesn't exist on Item
+         generationName: null, // Items don't have generation info in PokéAPI
       };
    }
 
@@ -74,7 +75,8 @@ export class ItemService extends BaseService {
          ...category,
          itemCount: category.items.length,
          itemNames: category.items.map((item) => item.name),
-         generationName: category.generation?.name || null,
+         // ItemCategory also doesn't have generation property
+         generationName: null, // Item categories don't have generation info in PokéAPI
       };
    }
 
