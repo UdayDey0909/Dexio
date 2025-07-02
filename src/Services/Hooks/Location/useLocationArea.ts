@@ -1,17 +1,17 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { locationService } from "../../API";
 import {
-   type UseLocationState,
-   type UseLocationReturn,
-   updateLocationState,
+   type UseLocationAreaState,
+   type UseLocationAreaReturn,
+   updateLocationAreaState,
    handleError,
    useMemoizedIdentifier,
 } from "./Shared/Types";
 
-export const useLocation = (
+export const useLocationArea = (
    identifier?: string | number
-): UseLocationReturn => {
-   const [state, setState] = useState<UseLocationState>({
+): UseLocationAreaReturn => {
+   const [state, setState] = useState<UseLocationAreaState>({
       data: null,
       loading: false,
       error: null,
@@ -21,14 +21,17 @@ export const useLocation = (
    const normalizedIdentifier = useMemoizedIdentifier(identifier);
 
    // Fetch function
-   const fetchLocation = useCallback(async (id: string | number) => {
-      updateLocationState(setState, { loading: true, error: null });
+   const fetchLocationArea = useCallback(async (id: string | number) => {
+      updateLocationAreaState(setState, { loading: true, error: null });
 
       try {
-         const location = await locationService.getLocation(id);
-         updateLocationState(setState, { data: location, loading: false });
+         const locationArea = await locationService.getLocationArea(id);
+         updateLocationAreaState(setState, {
+            data: locationArea,
+            loading: false,
+         });
       } catch (error) {
-         updateLocationState(setState, {
+         updateLocationAreaState(setState, {
             data: null,
             loading: false,
             error: handleError(error),
@@ -39,16 +42,16 @@ export const useLocation = (
    // Refetch function
    const refetch = useCallback(() => {
       if (normalizedIdentifier) {
-         fetchLocation(normalizedIdentifier);
+         fetchLocationArea(normalizedIdentifier);
       }
-   }, [normalizedIdentifier, fetchLocation]);
+   }, [normalizedIdentifier, fetchLocationArea]);
 
    // Effect for initial fetch
    useEffect(() => {
       if (normalizedIdentifier) {
-         fetchLocation(normalizedIdentifier);
+         fetchLocationArea(normalizedIdentifier);
       }
-   }, [normalizedIdentifier, fetchLocation]);
+   }, [normalizedIdentifier, fetchLocationArea]);
 
    // Memoized return
    return useMemo(() => ({ ...state, refetch }), [state, refetch]);
