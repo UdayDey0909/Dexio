@@ -1,7 +1,12 @@
 import { BaseService } from "../Client";
 import type { Item, ItemCategory } from "pokenode-ts";
+import type {
+   ItemDetails,
+   ItemCategoryDetails,
+} from "../Hooks/Item/Shared/Types";
 
 export class ItemService extends BaseService {
+   // Item methods
    async getItem(identifier: string | number): Promise<Item> {
       this.validateIdentifier(identifier, "Item");
 
@@ -21,6 +26,24 @@ export class ItemService extends BaseService {
       );
    }
 
+   async getItemDetails(name: string): Promise<ItemDetails> {
+      this.validateIdentifier(name, "Item name");
+
+      const item = await this.getItem(name);
+
+      return {
+         ...item,
+         categoryName: item.category?.name || null,
+         effectShort: item.effect_entries?.[0]?.short_effect || null,
+         costFormatted: item.cost ? `₽${item.cost.toLocaleString()}` : "Free",
+         isConsumable:
+            item.attributes?.some((attr) => attr.name === "consumable") ||
+            false,
+         generationName: item.generation?.name || null,
+      };
+   }
+
+   // Item Category methods
    async getItemCategory(identifier: string | number): Promise<ItemCategory> {
       this.validateIdentifier(identifier, "Item Category");
 
@@ -42,6 +65,20 @@ export class ItemService extends BaseService {
       );
    }
 
+   async getItemCategoryDetails(name: string): Promise<ItemCategoryDetails> {
+      this.validateIdentifier(name, "Item Category name");
+
+      const category = await this.getItemCategory(name);
+
+      return {
+         ...category,
+         itemCount: category.items.length,
+         itemNames: category.items.map((item) => item.name),
+         generationName: category.generation?.name || null,
+      };
+   }
+
+   // Helper methods
    async getItemsByCategory(categoryName: string) {
       this.validateIdentifier(categoryName, "Category name");
 
@@ -49,19 +86,17 @@ export class ItemService extends BaseService {
       return category.items;
    }
 
-   async batchGetItems(identifiers: (string | number)[]): Promise<Item[]> {
-      if (!Array.isArray(identifiers) || identifiers.length === 0) {
-         throw new Error("Identifiers array cannot be empty");
-      }
+   async getItemAttributes(itemName: string) {
+      this.validateIdentifier(itemName, "Item name");
 
-      if (identifiers.length > 50) {
-         throw new Error("Batch size cannot exceed 50 items");
-      }
+      const item = await this.getItem(itemName);
+      return item.attributes;
+   }
 
-      return this.batchOperation(
-         identifiers,
-         async (id) => await this.getItem(id),
-         5
-      );
+   async getItemEffects(itemName: string) {
+      this.validateIdentifier(itemName, "Item name");
+
+      const item = await this.getItem(itemName);
+      return item.effect_entries;
    }
 }

@@ -1,14 +1,19 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { itemService } from "../../API";
-import type { UseItemState, UseItemReturn } from "./Shared/Types";
+import type {
+   UseItemCategoryState,
+   UseItemCategoryReturn,
+} from "./Shared/Types";
 import {
    handleError,
-   updateItemState,
+   updateItemCategoryState,
    useMemoizedIdentifier,
 } from "./Shared/Types";
 
-export const useItem = (identifier?: string | number): UseItemReturn => {
-   const [state, setState] = useState<UseItemState>({
+export const useItemCategory = (
+   identifier?: string | number
+): UseItemCategoryReturn => {
+   const [state, setState] = useState<UseItemCategoryState>({
       data: null,
       loading: false,
       error: null,
@@ -18,14 +23,14 @@ export const useItem = (identifier?: string | number): UseItemReturn => {
    const normalizedIdentifier = useMemoizedIdentifier(identifier);
 
    // Fetch function
-   const fetchItem = useCallback(async (id: string | number) => {
-      updateItemState(setState, { loading: true, error: null });
+   const fetchItemCategory = useCallback(async (id: string | number) => {
+      updateItemCategoryState(setState, { loading: true, error: null });
 
       try {
-         const item = await itemService.getItem(id);
-         updateItemState(setState, { data: item, loading: false });
+         const category = await itemService.getItemCategory(id);
+         updateItemCategoryState(setState, { data: category, loading: false });
       } catch (error) {
-         updateItemState(setState, {
+         updateItemCategoryState(setState, {
             data: null,
             loading: false,
             error: handleError(error),
@@ -36,16 +41,16 @@ export const useItem = (identifier?: string | number): UseItemReturn => {
    // Refetch function
    const refetch = useCallback(() => {
       if (normalizedIdentifier) {
-         fetchItem(normalizedIdentifier);
+         fetchItemCategory(normalizedIdentifier);
       }
-   }, [normalizedIdentifier, fetchItem]);
+   }, [normalizedIdentifier, fetchItemCategory]);
 
    // Effect for initial fetch
    useEffect(() => {
       if (normalizedIdentifier) {
-         fetchItem(normalizedIdentifier);
+         fetchItemCategory(normalizedIdentifier);
       }
-   }, [normalizedIdentifier, fetchItem]);
+   }, [normalizedIdentifier, fetchItemCategory]);
 
    // Memoized return
    return useMemo(() => ({ ...state, refetch }), [state, refetch]);
