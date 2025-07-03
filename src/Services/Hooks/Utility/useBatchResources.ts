@@ -4,9 +4,7 @@ import { utilityService } from "../../API";
 import {
    UseBatchResourceState,
    UseBatchResourceReturn,
-   updateBatchResourceState,
    handleError,
-   useMemoizedUrls,
 } from "./Shared/Types";
 
 export const useBatchResources = <T = unknown>(): UseBatchResourceReturn<T> => {
@@ -18,7 +16,7 @@ export const useBatchResources = <T = unknown>(): UseBatchResourceReturn<T> => {
 
    const fetchBatch = useCallback(async (urls: string[]) => {
       if (!Array.isArray(urls) || urls.length === 0) {
-         updateBatchResourceState(setState, {
+         setState({
             data: [],
             loading: false,
             error: "URLs array cannot be empty",
@@ -27,7 +25,7 @@ export const useBatchResources = <T = unknown>(): UseBatchResourceReturn<T> => {
       }
 
       if (urls.length > 20) {
-         updateBatchResourceState(setState, {
+         setState({
             data: null,
             loading: false,
             error: "Maximum 20 URLs allowed per batch",
@@ -35,7 +33,7 @@ export const useBatchResources = <T = unknown>(): UseBatchResourceReturn<T> => {
          return;
       }
 
-      updateBatchResourceState(setState, { loading: true, error: null });
+      setState((prev) => ({ ...prev, loading: true, error: null }));
 
       try {
          const resources = await utilityService.batchGetResources<T>(urls);
@@ -43,12 +41,13 @@ export const useBatchResources = <T = unknown>(): UseBatchResourceReturn<T> => {
          const validResources = resources.filter(
             (item): item is T => item !== null
          );
-         updateBatchResourceState(setState, {
+         setState({
             data: validResources,
             loading: false,
+            error: null,
          });
       } catch (error) {
-         updateBatchResourceState(setState, {
+         setState({
             data: null,
             loading: false,
             error: handleError(error),

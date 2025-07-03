@@ -4,9 +4,7 @@ import { utilityService } from "../../API";
 import {
    UseRandomResourceState,
    UseRandomResourceReturn,
-   updateRandomResourceState,
    handleError,
-   useMemoizedEndpoint,
 } from "./Shared/Types";
 
 export const useRandomResource = <
@@ -22,7 +20,7 @@ export const useRandomResource = <
       const trimmedEndpoint = endpoint?.trim().toLowerCase();
 
       if (!trimmedEndpoint) {
-         updateRandomResourceState(setState, {
+         setState({
             data: null,
             loading: false,
             error: "Endpoint is required",
@@ -31,7 +29,7 @@ export const useRandomResource = <
       }
 
       if (!utilityService.isValidEndpoint(trimmedEndpoint)) {
-         updateRandomResourceState(setState, {
+         setState({
             data: null,
             loading: false,
             error: `Invalid endpoint: ${trimmedEndpoint}`,
@@ -39,18 +37,19 @@ export const useRandomResource = <
          return;
       }
 
-      updateRandomResourceState(setState, { loading: true, error: null });
+      setState((prev) => ({ ...prev, loading: true, error: null }));
 
       try {
          const resource = await utilityService.getRandomResource<T>(
             trimmedEndpoint
          );
-         updateRandomResourceState(setState, {
+         setState({
             data: resource,
             loading: false,
+            error: null,
          });
       } catch (error) {
-         updateRandomResourceState(setState, {
+         setState({
             data: null,
             loading: false,
             error: handleError(error),

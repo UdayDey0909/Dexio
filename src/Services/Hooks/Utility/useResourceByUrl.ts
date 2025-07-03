@@ -4,9 +4,7 @@ import { utilityService } from "../../API";
 import {
    UseResourceState,
    UseResourceReturn,
-   updateResourceState,
    handleError,
-   useMemoizedUrl,
 } from "./Shared/Types";
 
 export const useResourceByUrl = <T = unknown>(): UseResourceReturn<T> => {
@@ -20,7 +18,7 @@ export const useResourceByUrl = <T = unknown>(): UseResourceReturn<T> => {
       const trimmedUrl = url?.trim();
 
       if (!trimmedUrl) {
-         updateResourceState(setState, {
+         setState({
             data: null,
             loading: false,
             error: "URL is required",
@@ -28,13 +26,13 @@ export const useResourceByUrl = <T = unknown>(): UseResourceReturn<T> => {
          return;
       }
 
-      updateResourceState(setState, { loading: true, error: null });
+      setState((prev) => ({ ...prev, loading: true, error: null }));
 
       try {
          const resource = await utilityService.getResourceByUrl<T>(trimmedUrl);
-         updateResourceState(setState, { data: resource, loading: false });
+         setState({ data: resource, loading: false, error: null });
       } catch (error) {
-         updateResourceState(setState, {
+         setState({
             data: null,
             loading: false,
             error: handleError(error),

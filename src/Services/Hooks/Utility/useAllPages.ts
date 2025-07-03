@@ -4,10 +4,7 @@ import { utilityService } from "../../API";
 import {
    UseAllPagesState,
    UseAllPagesReturn,
-   updateAllPagesState,
    handleError,
-   useMemoizedUrl,
-   useMemoizedMaxPages,
 } from "./Shared/Types";
 
 export const useAllPages = <T = unknown>(): UseAllPagesReturn<T> => {
@@ -22,7 +19,7 @@ export const useAllPages = <T = unknown>(): UseAllPagesReturn<T> => {
          const trimmedUrl = initialUrl?.trim();
 
          if (!trimmedUrl) {
-            updateAllPagesState(setState, {
+            setState({
                data: null,
                loading: false,
                error: "Initial URL is required",
@@ -31,19 +28,20 @@ export const useAllPages = <T = unknown>(): UseAllPagesReturn<T> => {
          }
 
          const validatedMaxPages = Math.min(Math.max(1, maxPages), 50);
-         updateAllPagesState(setState, { loading: true, error: null });
+         setState((prev) => ({ ...prev, loading: true, error: null }));
 
          try {
             const allResults = await utilityService.getAllPages<T>(
                trimmedUrl,
                validatedMaxPages
             );
-            updateAllPagesState(setState, {
+            setState({
                data: allResults,
                loading: false,
+               error: null,
             });
          } catch (error) {
-            updateAllPagesState(setState, {
+            setState({
                data: null,
                loading: false,
                error: handleError(error),

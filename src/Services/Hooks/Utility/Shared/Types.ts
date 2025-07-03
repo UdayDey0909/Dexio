@@ -91,35 +91,6 @@ export const handleError = (error: unknown): string => {
    return "An unexpected error occurred";
 };
 
-// State updaters for each hook type
-export const updateResourceState = <T>(
-   setState: React.Dispatch<React.SetStateAction<UseResourceState<T>>>,
-   updates: Partial<UseResourceState<T>>
-) => {
-   setState((prev) => ({ ...prev, ...updates }));
-};
-
-export const updateBatchResourceState = <T>(
-   setState: React.Dispatch<React.SetStateAction<UseBatchResourceState<T>>>,
-   updates: Partial<UseBatchResourceState<T>>
-) => {
-   setState((prev) => ({ ...prev, ...updates }));
-};
-
-export const updateAllPagesState = <T>(
-   setState: React.Dispatch<React.SetStateAction<UseAllPagesState<T>>>,
-   updates: Partial<UseAllPagesState<T>>
-) => {
-   setState((prev) => ({ ...prev, ...updates }));
-};
-
-export const updateRandomResourceState = <T>(
-   setState: React.Dispatch<React.SetStateAction<UseRandomResourceState<T>>>,
-   updates: Partial<UseRandomResourceState<T>>
-) => {
-   setState((prev) => ({ ...prev, ...updates }));
-};
-
 // Memoization utilities
 export const useMemoizedUrl = (url?: string) => {
    return useMemo(() => {
@@ -145,7 +116,7 @@ export const useMemoizedMaxPages = (maxPages?: number) => {
    }, [maxPages]);
 };
 
-// Common fetch wrapper
+// Common fetch wrapper - removed the problematic generic state updaters
 export const createFetchWrapper = <T>(
    setState: React.Dispatch<React.SetStateAction<BaseHookState<T>>>,
    operation: () => Promise<T>
