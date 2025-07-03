@@ -1,3 +1,4 @@
+// src/Services/API/index.ts
 import { PokemonService } from "./Pokemon";
 import { AbilityService } from "./Ability";
 import { TypeService } from "./Type";
@@ -26,6 +27,23 @@ export const encounterService = new EncounterService();
 export const gameService = new GameService();
 export const machineService = new MachineService();
 export const utilityService = new UtilityService();
+
+// Export individual services for direct imports
+export {
+   PokemonService,
+   AbilityService,
+   TypeService,
+   MoveService,
+   EvolutionService,
+   ItemService,
+   BerryService,
+   LocationService,
+   ContestService,
+   EncounterService,
+   GameService,
+   MachineService,
+   UtilityService,
+};
 
 // Main service class that combines all services
 export class PokeAPIService {
@@ -82,7 +100,21 @@ export class PokeAPIService {
    getServiceStats() {
       return {
          totalServices: Object.keys(this.getAllServices()).length,
-         cacheInfo: this.utility.getCacheInfo(),
+         serviceHealth: {
+            pokemon: this.pokemon.getHealthStatus(),
+            abilities: this.abilities.getHealthStatus(),
+            types: this.types.getHealthStatus(),
+            moves: this.moves.getHealthStatus(),
+            evolution: this.evolution.getHealthStatus(),
+            items: this.items.getHealthStatus(),
+            berries: this.berries.getHealthStatus(),
+            locations: this.locations.getHealthStatus(),
+            contests: this.contests.getHealthStatus(),
+            encounters: this.encounters.getHealthStatus(),
+            games: this.games.getHealthStatus(),
+            machines: this.machines.getHealthStatus(),
+            utility: this.utility.getHealthStatus(),
+         },
       };
    }
 }
