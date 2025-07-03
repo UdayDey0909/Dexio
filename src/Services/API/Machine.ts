@@ -1,5 +1,6 @@
 import { BaseService } from "../Client";
 import type { Machine } from "pokenode-ts";
+import type { MachineDetails } from "../Hooks/Machine/Shared/Types";
 
 export class MachineService extends BaseService {
    async getMachine(id: number): Promise<Machine> {
@@ -18,6 +19,23 @@ export class MachineService extends BaseService {
          async () => await this.api.machine.listMachines(offset, limit),
          "Failed to fetch machine list"
       );
+   }
+
+   async getMachineDetails(id: number): Promise<MachineDetails> {
+      this.validateIdentifier(id, "Machine ID");
+
+      const machine = await this.getMachine(id);
+
+      return {
+         ...machine,
+         // Add enhanced/computed properties
+         machineNumber: `TM${id.toString().padStart(2, "0")}`,
+         formattedName: machine.move?.name
+            ? machine.move.name
+                 .replace("-", " ")
+                 .replace(/\b\w/g, (l) => l.toUpperCase())
+            : "Unknown Move",
+      };
    }
 
    async getMachinesByVersionGroup(versionGroupName: string) {
