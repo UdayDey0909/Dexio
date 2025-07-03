@@ -101,7 +101,6 @@ export class TypeService extends BaseService {
       this.validateIdentifier(defendingType, "Defending type");
 
       const type = await this.getType(attackingType);
-      const effectiveness = this.getTypeEffectiveness(attackingType);
 
       // Check effectiveness against defending type
       const isDoubleDamage = type.damage_relations.double_damage_to.some(
@@ -115,24 +114,28 @@ export class TypeService extends BaseService {
       );
 
       let multiplier = 1;
-      let effectiveness_text = "normal";
+      let effectiveness:
+         | "normal"
+         | "super_effective"
+         | "not_very_effective"
+         | "no_effect" = "normal";
 
       if (isDoubleDamage) {
          multiplier = 2;
-         effectiveness_text = "super_effective";
+         effectiveness = "super_effective";
       } else if (isHalfDamage) {
          multiplier = 0.5;
-         effectiveness_text = "not_very_effective";
+         effectiveness = "not_very_effective";
       } else if (isNoDamage) {
          multiplier = 0;
-         effectiveness_text = "no_effect";
+         effectiveness = "no_effect";
       }
 
       return {
          attackingType,
          defendingType,
          multiplier,
-         effectiveness: effectiveness_text,
+         effectiveness,
       };
    }
 }

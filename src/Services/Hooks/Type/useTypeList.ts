@@ -1,28 +1,39 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { typeService } from "../../API";
 import {
-   UseAllTypesState,
-   UseAllTypesReturn,
+   UseTypeListState,
+   UseTypeListReturn,
    handleError,
-   updateAllTypesState,
+   updateTypeListState,
+   useMemoizedPagination,
 } from "./Shared/Types";
 
-export const useAllTypes = (): UseAllTypesReturn => {
-   const [state, setState] = useState<UseAllTypesState>({
+export const useTypeList = (
+   offset: number = 0,
+   limit: number = 20
+): UseTypeListReturn => {
+   const [state, setState] = useState<UseTypeListState>({
       data: [],
       loading: false,
       error: null,
    });
 
+   // Memoize pagination parameters
+   const { offset: normalizedOffset, limit: normalizedLimit } =
+      useMemoizedPagination(offset, limit);
+
    // Fetch function
-   const fetchAllTypes = useCallback(async () => {
-      updateAllTypesState(setState, { loading: true, error: null });
+   const fetchTypeList = useCallback(async (off: number, lim: number) => {
+      updateTypeListState(setState, { loading: true, error: null });
 
       try {
-         const types = await typeService.getAllTypes();
-         updateAllTypesState(setState, { data: types, loading: false });
+         const result = await typeService.getTypeList(off, lim);
+         updateTypeListState(setState, {
+            data: result.results,
+            loading: false,
+         });
       } catch (error) {
-         updateAllTypesState(setState, {
+         updateTypeListState(setState, {
             data: [],
             loading: false,
             error: handleError(error),
@@ -32,13 +43,13 @@ export const useAllTypes = (): UseAllTypesReturn => {
 
    // Refetch function
    const refetch = useCallback(() => {
-      fetchAllTypes();
-   }, [fetchAllTypes]);
+      fetchTypeList(normalizedOffset, normalizedLimit);
+   }, [normalizedOffset, normalizedLimit, fetchTypeList]);
 
    // Effect for initial fetch
    useEffect(() => {
-      fetchAllTypes();
-   }, [fetchAllTypes]);
+      fetchTypeList(normalizedOffset, normalizedLimit);
+   }, [normalizedOffset, normalizedLimit, fetchTypeList]);
 
    // Memoized return
    return useMemo(() => ({ ...state, refetch }), [state, refetch]);
