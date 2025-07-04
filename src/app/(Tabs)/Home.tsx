@@ -8,7 +8,7 @@ import {
    SafeAreaView,
    StatusBar,
 } from "react-native";
-import { PokemonCard } from "../Components/PokemonCard";
+import { PokemonCard } from "../../Components/PokemonCard";
 
 export default function App() {
    const [selectedPokemon, setSelectedPokemon] = useState<number[]>([1, 4, 7]);
