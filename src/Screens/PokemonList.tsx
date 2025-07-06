@@ -1,11 +1,12 @@
-// App.tsx
-import React, { useCallback } from "react";
+import React, { useCallback, useMemo } from "react";
 import {
    StyleSheet,
    SafeAreaView,
    StatusBar,
    Platform,
    Alert,
+   View,
+   Text,
 } from "react-native";
 import PokemonGrid from "@/Features/Home/Components/PokemonGrid";
 import AppHeader from "@/Features/Home/Components/AppHeader";
@@ -23,14 +24,26 @@ export const PokemonList: React.FC = () => {
       hasMore,
       onRefresh,
       loadMore,
+      refetch,
    } = usePokemonGrid(20, 0);
 
+   // Memoized Pokemon press handler
    const handlePokemonPress = useCallback((pokemon: PokemonCardData) => {
-      Alert.alert(
-         `${pokemon.name} #${pokemon.id}`,
-         `Types: ${pokemon.types.join(", ")}`,
-         [{ text: "OK" }]
-      );
+      const typeText =
+         pokemon.types.length > 1
+            ? `Types: ${pokemon.types.join(", ")}`
+            : `Type: ${pokemon.types[0]}`;
+
+      Alert.alert(`${pokemon.name} #${pokemon.id}`, typeText, [
+         { text: "OK", style: "default" },
+         {
+            text: "Details",
+            onPress: () => {
+               // TODO: Navigate to Pokemon details screen
+               console.log(`Navigate to details for ${pokemon.name}`);
+            },
+         },
+      ]);
    }, []);
 
    return (

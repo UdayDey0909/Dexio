@@ -1,5 +1,12 @@
 // hooks/usePokemonGrid.tsx
-import { useState, useEffect, useCallback, useMemo } from "react";
+import {
+   useState,
+   useEffect,
+   useCallback,
+   useMemo,
+   useRef,
+   useReducer,
+} from "react";
 import { pokemonService } from "@/Services/API";
 import type { Pokemon } from "pokenode-ts";
 import { PokemonCardData } from "../Types";
@@ -20,11 +27,90 @@ interface UsePokemonGridReturn extends UsePokemonGridState {
    loadMore: () => void;
 }
 
+// Action types for useReducer
+type PokemonGridAction =
+   | {
+        type: "FETCH_START";
+        payload: { isRefresh: boolean; isLoadMore: boolean };
+     }
+   | {
+        type: "FETCH_SUCCESS";
+        payload: {
+           data: PokemonCardData[];
+           hasMore: boolean;
+           offset: number;
+           isRefresh: boolean;
+        };
+     }
+   | { type: "FETCH_ERROR"; payload: { error: string } }
+   | { type: "RESET" }
+   | { type: "SET_HAS_MORE"; payload: { hasMore: boolean } };
+
+// Reducer for managing complex state transitions
+const pokemonGridReducer = (
+   state: UsePokemonGridState,
+   action: PokemonGridAction
+): UsePokemonGridState => {
+   switch (action.type) {
+      case "FETCH_START":
+         return {
+            ...state,
+            loading:
+               !action.payload.isRefresh &&
+               !action.payload.isLoadMore &&
+               state.pokemonData.length === 0,
+            refreshing: action.payload.isRefresh,
+            loadingMore: action.payload.isLoadMore,
+            error: null,
+         };
+      case "FETCH_SUCCESS":
+         return {
+            ...state,
+            pokemonData: action.payload.isRefresh
+               ? action.payload.data
+               : [...state.pokemonData, ...action.payload.data],
+            hasMore: action.payload.hasMore,
+            offset: action.payload.offset,
+            loading: false,
+            refreshing: false,
+            loadingMore: false,
+            error: null,
+         };
+      case "FETCH_ERROR":
+         return {
+            ...state,
+            loading: false,
+            refreshing: false,
+            loadingMore: false,
+            error: action.payload.error,
+         };
+      case "RESET":
+         return {
+            ...state,
+            pokemonData: [],
+            offset: 0,
+            hasMore: true,
+            error: null,
+            loading: false,
+            refreshing: false,
+            loadingMore: false,
+         };
+      case "SET_HAS_MORE":
+         return {
+            ...state,
+            hasMore: action.payload.hasMore,
+         };
+      default:
+         return state;
+   }
+};
+
 export const usePokemonGrid = (
    limit: number = 20,
    initialOffset: number = 0
 ): UsePokemonGridReturn => {
-   const [state, setState] = useState<UsePokemonGridState>({
+   // Use useReducer for complex state management
+   const [state, dispatch] = useReducer(pokemonGridReducer, {
       pokemonData: [],
       loading: false,
       error: null,
@@ -34,12 +120,16 @@ export const usePokemonGrid = (
       loadingMore: false,
    });
 
-   // Constants for Pokemon API limits
-   const TOTAL_POKEMON = 1010; // Current total Pokemon count
-   const BATCH_SIZE = Math.min(limit, 20); // Optimize batch size
-   const PREFETCH_BUFFER = 5; // Number of items before end to start loading
+   // Refs for cleanup and preventing memory leaks
+   const abortControllerRef = useRef<AbortController | null>(null);
+   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+   const isMountedRef = useRef(true);
 
-   // Transform Pokemon to PokemonCardData
+   // Constants for Pokemon API limits
+   const TOTAL_POKEMON = 1010;
+   const BATCH_SIZE = Math.min(limit, 20);
+
+   // Transform Pokemon to PokemonCardData - memoized to prevent recreations
    const transformPokemon = useCallback((pokemon: Pokemon): PokemonCardData => {
       return {
          id: pokemon.id,
@@ -57,34 +147,38 @@ export const usePokemonGrid = (
       };
    }, []);
 
-   // Optimized fetch function
+   // Optimized fetch function with proper error handling and cancellation
    const fetchPokemon = useCallback(
       async (isRefresh = false, isLoadMore = false) => {
-         try {
-            // Prevent multiple simultaneous requests
-            if (state.loading || state.loadingMore) return;
+         // Prevent multiple simultaneous requests
+         if (state.loading || state.loadingMore) {
+            console.warn("Fetch already in progress, skipping request");
+            return;
+         }
 
+         // Cancel previous request if exists
+         if (abortControllerRef.current) {
+            abortControllerRef.current.abort();
+         }
+
+         // Create new abort controller
+         abortControllerRef.current = new AbortController();
+
+         try {
             // Calculate current offset
             const currentOffset = isRefresh ? 0 : state.offset;
 
             // Check if we've reached the end
             if (currentOffset >= TOTAL_POKEMON && !isRefresh) {
-               setState((prev) => ({ ...prev, hasMore: false }));
+               dispatch({ type: "SET_HAS_MORE", payload: { hasMore: false } });
                return;
             }
 
-            // Set appropriate loading states
-            setState((prev) => ({
-               ...prev,
-               loading:
-                  !isRefresh && !isLoadMore && prev.pokemonData.length === 0,
-               refreshing: isRefresh,
-               loadingMore: isLoadMore,
-               error: null,
-            }));
-
-            // Optionally, add a network check here if needed
-            // For now, proceed without explicit connection check
+            // Dispatch loading state
+            dispatch({
+               type: "FETCH_START",
+               payload: { isRefresh, isLoadMore },
+            });
 
             // Generate Pokemon IDs for pagination
             const pokemonIds = Array.from(
@@ -92,10 +186,24 @@ export const usePokemonGrid = (
                (_, index) => currentOffset + index + 1
             ).filter((id) => id <= TOTAL_POKEMON);
 
-            // Batch fetch Pokemon details using IDs (more efficient)
-            const pokemonList = await Promise.all(
-               pokemonIds.map((id) => pokemonService.getPokemon(id))
-            );
+            // Batch fetch Pokemon details using IDs
+            const pokemonPromises = pokemonIds.map(async (id) => {
+               // Check if request was cancelled
+               if (abortControllerRef.current?.signal.aborted) {
+                  throw new Error("Request cancelled");
+               }
+               return pokemonService.getPokemon(id);
+            });
+
+            const pokemonList = await Promise.all(pokemonPromises);
+
+            // Check if component is still mounted and request wasn't cancelled
+            if (
+               !isMountedRef.current ||
+               abortControllerRef.current?.signal.aborted
+            ) {
+               return;
+            }
 
             // Transform to card data
             const transformedPokemon = pokemonList.map(transformPokemon);
@@ -105,30 +213,36 @@ export const usePokemonGrid = (
             const hasMoreData =
                newOffset < TOTAL_POKEMON && pokemonList.length === BATCH_SIZE;
 
-            // Update state
-            setState((prev) => ({
-               ...prev,
-               pokemonData: isRefresh
-                  ? transformedPokemon
-                  : [...prev.pokemonData, ...transformedPokemon],
-               loading: false,
-               refreshing: false,
-               loadingMore: false,
-               hasMore: hasMoreData,
-               offset: newOffset,
-            }));
+            // Dispatch success
+            dispatch({
+               type: "FETCH_SUCCESS",
+               payload: {
+                  data: transformedPokemon,
+                  hasMore: hasMoreData,
+                  offset: newOffset,
+                  isRefresh,
+               },
+            });
          } catch (error) {
+            // Don't handle aborted requests as errors
+            if (error instanceof Error && error.name === "AbortError") {
+               return;
+            }
+
             console.error("Error fetching Pokemon:", error);
-            setState((prev) => ({
-               ...prev,
-               loading: false,
-               refreshing: false,
-               loadingMore: false,
-               error:
-                  error instanceof Error
-                     ? error.message
-                     : "Failed to load Pokemon data",
-            }));
+
+            // Only dispatch error if component is still mounted
+            if (isMountedRef.current) {
+               dispatch({
+                  type: "FETCH_ERROR",
+                  payload: {
+                     error:
+                        error instanceof Error
+                           ? error.message
+                           : "Failed to load Pokemon data",
+                  },
+               });
+            }
          }
       },
       [
@@ -140,64 +254,71 @@ export const usePokemonGrid = (
       ]
    );
 
-   // Debounced load more to prevent rapid calls
-   const loadMore = useCallback(
-      (() => {
-         let timeoutId: ReturnType<typeof setTimeout>;
+   // Debounced load more with proper cleanup
+   const loadMore = useCallback(() => {
+      if (
+         !state.hasMore ||
+         state.loading ||
+         state.refreshing ||
+         state.loadingMore
+      ) {
+         return;
+      }
 
-         return () => {
-            if (
-               !state.hasMore ||
-               state.loading ||
-               state.refreshing ||
-               state.loadingMore
-            ) {
-               return;
-            }
+      // Clear existing timeout
+      if (timeoutRef.current) {
+         clearTimeout(timeoutRef.current);
+      }
 
-            clearTimeout(timeoutId);
-            timeoutId = setTimeout(() => {
-               fetchPokemon(false, true);
-            }, 300); // 300ms debounce
-         };
-      })(),
-      [
-         state.hasMore,
-         state.loading,
-         state.refreshing,
-         state.loadingMore,
-         fetchPokemon,
-      ]
-   );
+      // Set new timeout
+      timeoutRef.current = setTimeout(() => {
+         if (isMountedRef.current) {
+            fetchPokemon(false, true);
+         }
+      }, 300);
+   }, [
+      state.hasMore,
+      state.loading,
+      state.refreshing,
+      state.loadingMore,
+      fetchPokemon,
+   ]);
 
    // Refresh function
    const onRefresh = useCallback(() => {
-      setState((prev) => ({
-         ...prev,
-         offset: 0,
-         hasMore: true,
-         error: null,
-      }));
+      dispatch({ type: "RESET" });
       fetchPokemon(true, false);
    }, [fetchPokemon]);
 
    // Refetch function
    const refetch = useCallback(() => {
-      setState((prev) => ({
-         ...prev,
-         offset: 0,
-         hasMore: true,
-         error: null,
-      }));
+      dispatch({ type: "RESET" });
       fetchPokemon(false, false);
    }, [fetchPokemon]);
 
-   // Initial fetch
+   // Initial fetch effect
    useEffect(() => {
-      if (state.pokemonData.length === 0) {
+      if (state.pokemonData.length === 0 && !state.loading && !state.error) {
          fetchPokemon();
       }
-   }, []); // Only run once on mount
+   }, []);
+
+   // Cleanup effect
+   useEffect(() => {
+      return () => {
+         isMountedRef.current = false;
+
+         // Cancel any pending requests
+         if (abortControllerRef.current) {
+            abortControllerRef.current.abort();
+         }
+
+         // Clear any pending timeouts
+         if (timeoutRef.current) {
+            clearTimeout(timeoutRef.current);
+         }
+      };
+   }, []);
 
    // Memoized return to prevent unnecessary re-renders
    return useMemo(

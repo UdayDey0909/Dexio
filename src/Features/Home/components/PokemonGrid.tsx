@@ -1,5 +1,5 @@
 // components/PokemonGrid.tsx
-import React, { memo, useCallback, useMemo } from "react";
+import React, { memo, useCallback, useMemo, useRef } from "react";
 import {
    StyleSheet,
    View,
@@ -81,6 +81,9 @@ const PokemonGrid: React.FC<PokemonGridProps> = ({
    onRefresh,
    onPokemonPress,
 }) => {
+   // Ref to track if we've already called onLoadMore
+   const loadMoreCalledRef = useRef(false);
+
    // Memoize the renderItem function to prevent recreation
    const renderItem: ListRenderItem<PokemonCardData> = useCallback(
       ({ item }) => (
@@ -119,8 +122,13 @@ const PokemonGrid: React.FC<PokemonGridProps> = ({
       );
    }, [loadingMore, pokemonData]);
 
-   // Optimized end reached handler with debouncing
+   // Optimized end reached handler with debouncing and duplicate prevention
    const handleEndReached = useCallback(() => {
+      // Prevent duplicate calls
+      if (loadMoreCalledRef.current) {
+         return;
+      }
+
       if (
          hasMore &&
          !loading &&
@@ -128,7 +136,13 @@ const PokemonGrid: React.FC<PokemonGridProps> = ({
          !refreshing &&
          pokemonData.length > 0
       ) {
+         loadMoreCalledRef.current = true;
          onLoadMore();
+
+         // Reset the flag after a delay
+         setTimeout(() => {
+            loadMoreCalledRef.current = false;
+         }, 1000);
       }
    }, [
       hasMore,
@@ -138,6 +152,13 @@ const PokemonGrid: React.FC<PokemonGridProps> = ({
       onLoadMore,
       pokemonData.length,
    ]);
+
+   // Reset loadMore flag when loading states change
+   React.useEffect(() => {
+      if (!loadingMore) {
+         loadMoreCalledRef.current = false;
+      }
+   }, [loadingMore]);
 
    // Memoize refresh control
    const refreshControl = useMemo(
@@ -158,11 +179,11 @@ const PokemonGrid: React.FC<PokemonGridProps> = ({
       if (Platform.OS === "android") {
          return {
             removeClippedSubviews: true,
-            maxToRenderPerBatch: 6, // Reduced from 8
-            updateCellsBatchingPeriod: 50, // Increased from 30
-            windowSize: 10, // Increased from 7
-            initialNumToRender: 8, // Increased from 6
-            getItemLayout: undefined, // Let FlatList handle it
+            maxToRenderPerBatch: 6,
+            updateCellsBatchingPeriod: 50,
+            windowSize: 10,
+            initialNumToRender: 8,
+            getItemLayout: undefined,
          };
       }
       return {
@@ -173,6 +194,9 @@ const PokemonGrid: React.FC<PokemonGridProps> = ({
          initialNumToRender: 10,
       };
    }, []);
+
+   // Memoize the data length to prevent unnecessary re-renders
+   const dataLength = useMemo(() => pokemonData.length, [pokemonData.length]);
 
    return (
       <FlatList
@@ -186,7 +210,7 @@ const PokemonGrid: React.FC<PokemonGridProps> = ({
          ListEmptyComponent={renderEmptyComponent}
          showsVerticalScrollIndicator={false}
          onEndReached={handleEndReached}
-         onEndReachedThreshold={0.3} // Increased threshold
+         onEndReachedThreshold={0.3}
          ListFooterComponent={renderFooterComponent}
          refreshControl={refreshControl}
          // Performance optimizations
@@ -195,8 +219,14 @@ const PokemonGrid: React.FC<PokemonGridProps> = ({
          legacyImplementation={false}
          disableVirtualization={false}
          maintainVisibleContentPosition={undefined}
-         // Reduce re-renders
-         extraData={pokemonData.length} // Only re-render when length changes
+         // Reduce re-renders - only re-render when data length changes
+         extraData={dataLength}
+         // Optimize scrolling
+         decelerationRate="fast"
+         bounces={true}
+         bouncesZoom={false}
+         alwaysBounceVertical={false}
+         // Memory optimization
       />
    );
 };
@@ -222,4 +252,17 @@ const styles = StyleSheet.create({
    },
 });
 
-export default memo(PokemonGrid);
+export default memo(PokemonGrid, (prevProps, nextProps) => {
+   // Custom comparison to prevent unnecessary re-renders
+   return (
+      prevProps.pokemonData.length === nextProps.pokemonData.length &&
+      prevProps.loading === nextProps.loading &&
+      prevProps.loadingMore === nextProps.loadingMore &&
+      prevProps.error === nextProps.error &&
+      prevProps.refreshing === nextProps.refreshing &&
+      prevProps.hasMore === nextProps.hasMore &&
+      prevProps.onLoadMore === nextProps.onLoadMore &&
+      prevProps.onRefresh === nextProps.onRefresh &&
+      prevProps.onPokemonPress === nextProps.onPokemonPress
+   );
+});
