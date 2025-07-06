@@ -1,13 +1,6 @@
-// components/PokemonGrid.tsx
 import React, { memo, useCallback, useMemo, useRef } from "react";
-import {
-   StyleSheet,
-   View,
-   FlatList,
-   RefreshControl,
-   Platform,
-   ListRenderItem,
-} from "react-native";
+import { StyleSheet, View, RefreshControl } from "react-native";
+import { FlashList, ListRenderItem } from "@shopify/flash-list";
 import PokemonCard from "./PokemonCard";
 import LoadingState from "./LoadingState";
 import ErrorState from "./ErrorState";
@@ -28,29 +21,31 @@ interface PokemonGridProps {
 }
 
 // Simplified Pokemon Card wrapper - removed unnecessary memoization
-const PokemonCardWrapper = ({
-   pokemon,
-   onPress,
-}: {
-   pokemon: PokemonCardData;
-   onPress?: (pokemon: PokemonCardData) => void;
-}) => {
-   const handlePress = useCallback(() => {
-      onPress?.(pokemon);
-   }, [onPress, pokemon]);
+const PokemonCardWrapper = memo(
+   ({
+      pokemon,
+      onPress,
+   }: {
+      pokemon: PokemonCardData;
+      onPress?: (pokemon: PokemonCardData) => void;
+   }) => {
+      const handlePress = useCallback(() => {
+         onPress?.(pokemon);
+      }, [onPress, pokemon]);
 
-   return (
-      <View style={styles.cardWrapper}>
-         <PokemonCard
-            name={pokemon.name}
-            id={pokemon.id}
-            image={pokemon.image}
-            types={pokemon.types}
-            onPress={handlePress}
-         />
-      </View>
-   );
-};
+      return (
+         <View style={styles.cardWrapper}>
+            <PokemonCard
+               name={pokemon.name}
+               id={pokemon.id}
+               image={pokemon.image}
+               types={pokemon.types}
+               onPress={handlePress}
+            />
+         </View>
+      );
+   }
+);
 
 const PokemonGrid: React.FC<PokemonGridProps> = ({
    pokemonData,
@@ -65,7 +60,7 @@ const PokemonGrid: React.FC<PokemonGridProps> = ({
 }) => {
    const loadMoreCalledRef = useRef(false);
 
-   // Simplified renderItem - removed unnecessary memoization
+   // Simplified renderItem for FlashList
    const renderItem: ListRenderItem<PokemonCardData> = useCallback(
       ({ item }) => (
          <PokemonCardWrapper pokemon={item} onPress={onPokemonPress} />
@@ -73,13 +68,13 @@ const PokemonGrid: React.FC<PokemonGridProps> = ({
       [onPokemonPress]
    );
 
-   // Keep key extractor memoized
+   // Key extractor for FlashList
    const keyExtractor = useCallback(
       (item: PokemonCardData) => `pokemon-${item.id}`,
       []
    );
 
-   // Simplified empty component
+   // Empty component for FlashList
    const renderEmptyComponent = useCallback(() => {
       if (loading && pokemonData.length === 0) {
          return <LoadingState message="Loading Pokémon..." />;
@@ -90,7 +85,7 @@ const PokemonGrid: React.FC<PokemonGridProps> = ({
       return <EmptyState />;
    }, [loading, pokemonData.length, error]);
 
-   // Simplified footer component
+   // Footer component for FlashList
    const renderFooterComponent = useCallback(() => {
       if (!loadingMore || pokemonData.length === 0) return null;
       return (
@@ -149,66 +144,61 @@ const PokemonGrid: React.FC<PokemonGridProps> = ({
       [refreshing, onRefresh]
    );
 
-   // Optimized FlatList props for large lists
-   const optimizedProps = useMemo(() => {
-      const baseProps = {
-         removeClippedSubviews: true,
-         maxToRenderPerBatch: Platform.OS === "android" ? 4 : 6,
-         updateCellsBatchingPeriod: Platform.OS === "android" ? 100 : 50,
-         windowSize: 10,
-         initialNumToRender: 8,
-         getItemLayout: (data: any, index: number) => ({
-            length: 200, // Approximate height of your cards
-            offset: 200 * Math.floor(index / 2), // Adjust for 2 columns
-            index,
-         }),
-      };
+   // FlashList specific optimizations
+   const flashListProps = useMemo(
+      () => ({
+         // Essential FlashList props
+         numColumns: 2,
+         estimatedItemSize: 150, // Approximate height of each card
 
-      return baseProps;
-   }, []);
+         // Performance optimizations
+         drawDistance: 500, // How far ahead to render items
+         removeClippedSubviews: true,
+
+         // Scrolling optimizations
+         scrollEventThrottle: 16,
+         decelerationRate: "fast" as const,
+
+         // Memory management
+         recycleItems: true,
+
+         // End reached configuration
+         onEndReachedThreshold: 0.5,
+
+         // Visual optimizations
+         showsVerticalScrollIndicator: false,
+         bounces: true,
+         alwaysBounceVertical: false,
+      }),
+      []
+   );
 
    return (
-      <FlatList
-         data={pokemonData}
-         renderItem={renderItem}
-         keyExtractor={keyExtractor}
-         numColumns={2}
-         columnWrapperStyle={styles.columnWrapper}
-         scrollEventThrottle={16}
-         contentContainerStyle={styles.contentContainer}
-         ListEmptyComponent={renderEmptyComponent}
-         showsVerticalScrollIndicator={false}
-         onEndReached={handleEndReached}
-         onEndReachedThreshold={0.5}
-         ListFooterComponent={renderFooterComponent}
-         refreshControl={refreshControl}
-         // Optimized props for large lists
-         {...optimizedProps}
-         // Additional performance optimizations
-         legacyImplementation={false}
-         disableVirtualization={false}
-         // REMOVED: extraData prop that was causing unnecessary re-renders
-         // extraData={dataLength} // This was causing performance issues
-
-         // Optimize scrolling
-         decelerationRate="fast"
-         bounces={true}
-         bouncesZoom={false}
-         alwaysBounceVertical={false}
-      />
+      <View style={styles.container}>
+         <FlashList
+            data={pokemonData}
+            renderItem={renderItem}
+            keyExtractor={keyExtractor}
+            contentContainerStyle={styles.contentContainer}
+            ListEmptyComponent={renderEmptyComponent}
+            ListFooterComponent={renderFooterComponent}
+            onEndReached={handleEndReached}
+            refreshControl={refreshControl}
+            {...flashListProps}
+         />
+      </View>
    );
 };
 
 const styles = StyleSheet.create({
+   container: {
+      flex: 1,
+   },
    cardWrapper: {
       flex: 1,
       maxWidth: "50%",
       paddingHorizontal: 4,
       paddingVertical: 6,
-   },
-   columnWrapper: {
-      justifyContent: "space-between",
-      paddingHorizontal: 4,
    },
    contentContainer: {
       paddingTop: 20,
@@ -217,10 +207,11 @@ const styles = StyleSheet.create({
    },
    footerContainer: {
       paddingVertical: 10,
+      paddingHorizontal: 12,
    },
 });
 
-// Simplified memo comparison
+// Simplified memo comparison for FlashList
 export default memo(PokemonGrid, (prevProps, nextProps) => {
    return (
       prevProps.pokemonData.length === nextProps.pokemonData.length &&
