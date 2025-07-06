@@ -1,5 +1,5 @@
 // components/PokemonTypeChip.tsx
-import React from "react";
+import React, { memo } from "react";
 import { View, Text, StyleSheet } from "react-native";
 
 interface PokemonTypeChipProps {
@@ -32,4 +32,7 @@ const styles = StyleSheet.create({
    },
 });
 
-export default PokemonTypeChip;
+// Memoize the component to prevent unnecessary re-renders
+export default memo(PokemonTypeChip, (prevProps, nextProps) => {
+   return prevProps.type === nextProps.type;
+});

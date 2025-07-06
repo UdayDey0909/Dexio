@@ -1,5 +1,5 @@
 // components/PokemonCard.tsx
-import React, { useCallback, useRef, useMemo } from "react";
+import React, { useCallback, useRef, useMemo, memo } from "react";
 import {
    View,
    Text,
@@ -20,6 +20,7 @@ const PokemonCard: React.FC<PokemonCardProps> = ({
    types,
    onPress,
 }) => {
+   // Memoize colors to prevent recalculation
    const cardBackgroundColor = useMemo(() => {
       if (types && types.length > 0) {
          return getTypeColor(types[0]);
@@ -38,33 +39,48 @@ const PokemonCard: React.FC<PokemonCardProps> = ({
       return "lightgrey";
    }, [types]);
 
+   // Optimize press handling
    const lastPressRef = useRef(0);
    const handlePress = useCallback(() => {
-      const currentTime = new Date().getTime();
+      const currentTime = Date.now();
       if (currentTime - lastPressRef.current > TIMING.doublePressDelay) {
          lastPressRef.current = currentTime;
          onPress?.();
       }
    }, [onPress]);
 
+   // Memoize type components with keys
    const typeComponents = useMemo(() => {
       return types.map((type: string, index: number) => (
-         <PokemonTypeChip key={index} type={type} />
+         <PokemonTypeChip key={`${id}-${type}-${index}`} type={type} />
       ));
-   }, [types]);
+   }, [types, id]);
 
-   const imageStyle =
-      Platform.OS === "android"
+   // Memoize styles that depend on props
+   const cardStyle = useMemo(
+      () => [styles.cardContainer, { backgroundColor: cardBackgroundColor }],
+      [cardBackgroundColor]
+   );
+
+   const pokeballStyle = useMemo(
+      () => [styles.pokeballBackground, { backgroundColor: pokeballBGColor }],
+      [pokeballBGColor]
+   );
+
+   const imageStyle = useMemo(() => {
+      return Platform.OS === "android"
          ? { ...styles.image, overflow: "hidden" as const }
          : styles.image;
+   }, []);
+
+   // Memoize image source
+   const imageSource = useMemo(() => {
+      return typeof image === "number" ? image : { uri: image.uri };
+   }, [image]);
 
    return (
       <Pressable
-         style={({ pressed }) => [
-            styles.cardContainer,
-            { backgroundColor: cardBackgroundColor },
-            pressed && styles.cardPressed,
-         ]}
+         style={({ pressed }) => [...cardStyle, pressed && styles.cardPressed]}
          onPress={handlePress}
          android_ripple={{
             color: "rgba(255,255,255,0.3)",
@@ -87,19 +103,17 @@ const PokemonCard: React.FC<PokemonCardProps> = ({
 
             <View style={styles.imageContainerMargin}>
                <View style={styles.imageContainer}>
-                  <View
-                     style={[
-                        styles.pokeballBackground,
-                        { backgroundColor: pokeballBGColor },
-                     ]}
-                  />
+                  <View style={pokeballStyle} />
                   <Image
-                     source={
-                        typeof image === "number" ? image : { uri: image.uri }
-                     }
+                     source={imageSource}
                      style={imageStyle}
                      fadeDuration={0}
                      resizeMethod="resize"
+                     // Performance optimizations
+                     loadingIndicatorSource={undefined}
+                     onLoadStart={undefined}
+                     onLoadEnd={undefined}
+                     onError={undefined}
                   />
                </View>
             </View>
@@ -193,4 +207,13 @@ const styles = StyleSheet.create({
    },
 });
 
-export default PokemonCard;
+export default memo(PokemonCard, (prevProps, nextProps) => {
+   return (
+      prevProps.id === nextProps.id &&
+      prevProps.name === nextProps.name &&
+      prevProps.image === nextProps.image &&
+      prevProps.types.length === nextProps.types.length &&
+      prevProps.types.every((type, index) => type === nextProps.types[index]) &&
+      prevProps.onPress === nextProps.onPress
+   );
+});
