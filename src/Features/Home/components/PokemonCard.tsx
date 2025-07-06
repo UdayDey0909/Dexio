@@ -1,13 +1,7 @@
 // components/PokemonCard.tsx
-import React, { useCallback, useRef, useMemo, memo } from "react";
-import {
-   View,
-   Text,
-   StyleSheet,
-   Image,
-   Pressable,
-   Platform,
-} from "react-native";
+import React, { useCallback, useRef, useMemo, memo, useState } from "react";
+import { View, Text, StyleSheet, Pressable, Platform } from "react-native";
+import { Image } from "expo-image";
 import { getTypeColor, lightenColor } from "../Utils/ColorUtils";
 import { CARD_DIMENSIONS, TIMING } from "../Constants/Dimensions";
 import { PokemonCardProps } from "../Types";
@@ -20,6 +14,10 @@ const PokemonCard: React.FC<PokemonCardProps> = ({
    types,
    onPress,
 }) => {
+   // Track image loading state for smooth transitions
+   const [imageLoaded, setImageLoaded] = useState(false);
+   const [hasError, setHasError] = useState(false);
+
    // Simplified color calculation - only memoize if types change
    const { cardBackgroundColor, pokeballBGColor } = useMemo(() => {
       if (types && types.length > 0) {
@@ -66,10 +64,24 @@ const PokemonCard: React.FC<PokemonCardProps> = ({
       [pokeballBGColor]
    );
 
-   // Simplified image handling
+   // Optimized image source handling
    const imageSource = useMemo(() => {
-      return typeof image === "number" ? image : { uri: image.uri };
+      return typeof image === "number" ? image : image.uri;
    }, [image]);
+
+   // Handle image loading states
+   const handleImageLoad = useCallback(() => {
+      setImageLoaded(true);
+      setHasError(false);
+   }, []);
+
+   const handleImageError = useCallback(() => {
+      setHasError(true);
+      setImageLoaded(false);
+   }, []);
+
+   // Fallback image source
+   const fallbackSource = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png`;
 
    return (
       <Pressable
@@ -97,13 +109,43 @@ const PokemonCard: React.FC<PokemonCardProps> = ({
             <View style={styles.imageContainerMargin}>
                <View style={styles.imageContainer}>
                   <View style={pokeballStyle} />
+
+                  {/* Skeleton placeholder - always visible until image loads */}
+                  {!imageLoaded && (
+                     <View style={styles.skeletonPlaceholder}>
+                        <View style={styles.skeletonShimmer} />
+                     </View>
+                  )}
+
+                  {/* Main image */}
                   <Image
                      source={imageSource}
-                     style={styles.image}
-                     fadeDuration={0}
-                     resizeMethod="resize"
-                     // Removed unnecessary undefined props
+                     style={[
+                        styles.image,
+                        {
+                           opacity: imageLoaded ? 1 : 0,
+                        },
+                     ]}
+                     contentFit="contain"
+                     transition={300}
+                     cachePolicy="memory-disk"
+                     priority="high"
+                     recyclingKey={`pokemon-${id}`}
+                     onLoad={handleImageLoad}
+                     onError={handleImageError}
                   />
+
+                  {/* Fallback image - only if main image fails */}
+                  {hasError && !imageLoaded && (
+                     <Image
+                        source={fallbackSource}
+                        style={styles.fallbackImage}
+                        contentFit="contain"
+                        cachePolicy="memory-disk"
+                        transition={200}
+                        onLoad={handleImageLoad}
+                     />
+                  )}
                </View>
             </View>
          </View>
@@ -191,8 +233,31 @@ const styles = StyleSheet.create({
    image: {
       width: CARD_DIMENSIONS.imageSize,
       height: CARD_DIMENSIONS.imageSize,
-      resizeMode: "contain",
+      zIndex: 2,
+      position: "absolute",
+   },
+   skeletonPlaceholder: {
+      width: CARD_DIMENSIONS.imageSize,
+      height: CARD_DIMENSIONS.imageSize,
+      backgroundColor: "rgba(255, 255, 255, 0.1)",
+      borderRadius: 8,
       zIndex: 1,
+      position: "absolute",
+      justifyContent: "center",
+      alignItems: "center",
+      overflow: "hidden",
+   },
+   skeletonShimmer: {
+      width: "60%",
+      height: "60%",
+      backgroundColor: "rgba(255, 255, 255, 0.2)",
+      borderRadius: 50,
+   },
+   fallbackImage: {
+      width: CARD_DIMENSIONS.imageSize * 0.8,
+      height: CARD_DIMENSIONS.imageSize * 0.8,
+      zIndex: 2,
+      position: "absolute",
    },
 });
 
