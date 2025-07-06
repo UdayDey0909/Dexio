@@ -20,26 +20,25 @@ const PokemonCard: React.FC<PokemonCardProps> = ({
    types,
    onPress,
 }) => {
-   // Memoize colors to prevent recalculation
-   const cardBackgroundColor = useMemo(() => {
-      if (types && types.length > 0) {
-         return getTypeColor(types[0]);
-      }
-      return "lightgrey";
-   }, [types]);
-
-   const pokeballBGColor = useMemo(() => {
+   // Simplified color calculation - only memoize if types change
+   const { cardBackgroundColor, pokeballBGColor } = useMemo(() => {
       if (types && types.length > 0) {
          const baseColor = getTypeColor(types[0]);
          const formattedColor = baseColor.startsWith("#")
             ? baseColor
             : `#${baseColor}`;
-         return lightenColor(formattedColor, 0.7);
+         return {
+            cardBackgroundColor: baseColor,
+            pokeballBGColor: lightenColor(formattedColor, 0.7),
+         };
       }
-      return "lightgrey";
+      return {
+         cardBackgroundColor: "lightgrey",
+         pokeballBGColor: "lightgrey",
+      };
    }, [types]);
 
-   // Optimize press handling
+   // Simplified press handling
    const lastPressRef = useRef(0);
    const handlePress = useCallback(() => {
       const currentTime = Date.now();
@@ -49,14 +48,14 @@ const PokemonCard: React.FC<PokemonCardProps> = ({
       }
    }, [onPress]);
 
-   // Memoize type components with keys
+   // Memoize type components with simpler key
    const typeComponents = useMemo(() => {
       return types.map((type: string, index: number) => (
-         <PokemonTypeChip key={`${id}-${type}-${index}`} type={type} />
+         <PokemonTypeChip key={`${type}-${index}`} type={type} />
       ));
-   }, [types, id]);
+   }, [types]);
 
-   // Memoize styles that depend on props
+   // Simplified style memoization
    const cardStyle = useMemo(
       () => [styles.cardContainer, { backgroundColor: cardBackgroundColor }],
       [cardBackgroundColor]
@@ -67,13 +66,7 @@ const PokemonCard: React.FC<PokemonCardProps> = ({
       [pokeballBGColor]
    );
 
-   const imageStyle = useMemo(() => {
-      return Platform.OS === "android"
-         ? { ...styles.image, overflow: "hidden" as const }
-         : styles.image;
-   }, []);
-
-   // Memoize image source
+   // Simplified image handling
    const imageSource = useMemo(() => {
       return typeof image === "number" ? image : { uri: image.uri };
    }, [image]);
@@ -106,14 +99,10 @@ const PokemonCard: React.FC<PokemonCardProps> = ({
                   <View style={pokeballStyle} />
                   <Image
                      source={imageSource}
-                     style={imageStyle}
+                     style={styles.image}
                      fadeDuration={0}
                      resizeMethod="resize"
-                     // Performance optimizations
-                     loadingIndicatorSource={undefined}
-                     onLoadStart={undefined}
-                     onLoadEnd={undefined}
-                     onError={undefined}
+                     // Removed unnecessary undefined props
                   />
                </View>
             </View>
@@ -207,13 +196,12 @@ const styles = StyleSheet.create({
    },
 });
 
+// Simplified memo comparison
 export default memo(PokemonCard, (prevProps, nextProps) => {
    return (
       prevProps.id === nextProps.id &&
       prevProps.name === nextProps.name &&
-      prevProps.image === nextProps.image &&
       prevProps.types.length === nextProps.types.length &&
-      prevProps.types.every((type, index) => type === nextProps.types[index]) &&
-      prevProps.onPress === nextProps.onPress
+      prevProps.types.every((type, index) => type === nextProps.types[index])
    );
 });
