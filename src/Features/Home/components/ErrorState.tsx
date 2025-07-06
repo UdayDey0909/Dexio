@@ -1,7 +1,7 @@
 // components/ErrorState.tsx
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
-import { COLORS } from "../constants/colors";
+import { COLORS } from "../Constants/Colors";
 
 interface ErrorStateProps {
    error: Error;

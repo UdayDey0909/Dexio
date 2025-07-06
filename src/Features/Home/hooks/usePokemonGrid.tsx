@@ -2,7 +2,7 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { pokemonService } from "@/Services/API";
 import type { Pokemon } from "pokenode-ts";
-import { PokemonCardData } from "../types";
+import { PokemonCardData } from "../Types";
 
 interface UsePokemonGridState {
    pokemonData: PokemonCardData[];

@@ -12,8 +12,8 @@ import PokemonCard from "./PokemonCard";
 import LoadingState from "./LoadingState";
 import ErrorState from "./ErrorState";
 import EmptyState from "./EmptyState";
-import { COLORS } from "../constants/colors";
-import { PokemonCardData } from "../types";
+import { COLORS } from "../Constants/Colors";
+import { PokemonCardData } from "../Types";
 
 interface PokemonGridProps {
    pokemonData: PokemonCardData[];

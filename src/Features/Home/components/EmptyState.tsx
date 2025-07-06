@@ -1,7 +1,7 @@
 // components/EmptyState.tsx
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
-import { COLORS } from "../constants/colors";
+import { COLORS } from "../Constants/Colors";
 
 const EmptyState: React.FC = () => {
    return (

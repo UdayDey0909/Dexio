@@ -1,5 +1,5 @@
 // utils/colorUtils.ts
-import { POKEMON_TYPE_COLORS } from "../constants/colors";
+import { POKEMON_TYPE_COLORS } from "../Constants/Colors";
 
 export const getTypeColor = (type: string): string => {
    return (

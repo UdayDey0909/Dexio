@@ -1,7 +1,7 @@
 // src/Features/Home/components/PokemonTypeIcons.tsx
 import React from "react";
 import { View, ViewStyle } from "react-native";
-import Svg, { Path, Circle, Rect, G } from "react-native-svg";
+import Svg, { Path, Circle } from "react-native-svg";
 
 interface TypeIconProps {
    size?: number;

@@ -8,9 +8,9 @@ import {
    Pressable,
    Platform,
 } from "react-native";
-import { getTypeColor, lightenColor } from "../utils/colorUtils";
-import { CARD_DIMENSIONS, TIMING } from "../constants/dimensions";
-import { PokemonCardProps } from "../types";
+import { getTypeColor, lightenColor } from "../Utils/ColorUtils";
+import { CARD_DIMENSIONS, TIMING } from "../Constants/Dimensions";
+import { PokemonCardProps } from "../Types";
 import PokemonTypeChip from "./PokemonTypeChip";
 
 const PokemonCard: React.FC<PokemonCardProps> = ({

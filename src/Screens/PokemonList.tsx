@@ -7,11 +7,11 @@ import {
    Platform,
    Alert,
 } from "react-native";
-import PokemonGrid from "@/Features/Home/components/PokemonGrid";
-import AppHeader from "@/Features/Home/components/AppHeader";
-import { COLORS } from "@/Features/Home/constants/colors";
-import { PokemonCardData } from "@/Features/Home/types";
-import { usePokemonGrid } from "@/Features/Home/hooks/usePokemonGrid";
+import PokemonGrid from "@/Features/Home/Components/PokemonGrid";
+import AppHeader from "@/Features/Home/Components/AppHeader";
+import { COLORS } from "@/Features/Home/Constants/Colors";
+import { PokemonCardData } from "@/Features/Home/Types";
+import { usePokemonGrid } from "@/Features/Home/Hooks/usePokemonGrid";
 
 export const PokemonList: React.FC = () => {
    const {
