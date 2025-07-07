@@ -15,7 +15,7 @@ export class BaseService {
       const {
          maxRetries = 3,
          retryDelay = 1000,
-         cacheTimeout = 5 * 60 * 1000,
+         cacheTimeout = 10 * 60 * 1000, // Increased cache timeout
       } = config;
 
       this.retryManager = new RetryManager(maxRetries, retryDelay);
@@ -52,15 +52,16 @@ export class BaseService {
       }
    }
 
+   // OPTIMIZED BATCH OPERATION - Balanced approach
    protected async batchOperation<T, R>(
       items: T[],
       operation: (item: T) => Promise<R>,
-      concurrency: number = 3
+      concurrency: number = 6 // Moderate concurrency
    ): Promise<R[]> {
       if (!items?.length) return [];
 
       Validator.validateArray(items, "Batch items");
-      const safeConcurrency = Math.min(concurrency, 5);
+      const safeConcurrency = Math.min(concurrency, 8); // Reasonable max
 
       const results: R[] = [];
       const errors: Array<{ item: T; error: Error }> = [];
@@ -68,15 +69,13 @@ export class BaseService {
       for (let i = 0; i < items.length; i += safeConcurrency) {
          const batch = items.slice(i, i + safeConcurrency);
 
+         // Small delay between batches to avoid rate limiting
          if (i > 0) {
-            await new Promise((resolve) => setTimeout(resolve, 200));
+            await new Promise((resolve) => setTimeout(resolve, 80));
          }
 
          const batchResults = await Promise.allSettled(
-            batch.map(async (item, index) => {
-               if (index > 0) {
-                  await new Promise((resolve) => setTimeout(resolve, 50));
-               }
+            batch.map(async (item) => {
                return operation(item);
             })
          );
@@ -153,7 +152,7 @@ export class BaseService {
          networkStatus: this.networkManager.isOnline(),
          lastCheck: new Date().toISOString(),
          cacheInfo: {
-            ttl: 5 * 60 * 1000,
+            ttl: 10 * 60 * 1000, // Updated to match constructor
             maxItems: 100,
          },
          retryConfig: {

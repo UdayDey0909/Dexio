@@ -45,10 +45,40 @@ export class PokemonCore extends BaseService {
          }
       });
 
-      return this.batchOperation(
-         identifiers,
-         async (id) => await this.getPokemon(id),
-         5
-      );
+      // TRUE PARALLEL EXECUTION - Remove artificial delays
+      return this.executeWithErrorHandling(async () => {
+         const promises = identifiers.map(async (id) => {
+            return typeof id === "string"
+               ? await this.api.pokemon.getPokemonByName(
+                    id.toLowerCase().trim()
+                 )
+               : await this.api.pokemon.getPokemonById(id);
+         });
+
+         // Execute all requests in parallel
+         const results = await Promise.allSettled(promises);
+
+         const successful: Pokemon[] = [];
+         const errors: string[] = [];
+
+         results.forEach((result, index) => {
+            if (result.status === "fulfilled") {
+               successful.push(result.value);
+            } else {
+               errors.push(
+                  `Failed to fetch Pokemon ${identifiers[index]}: ${result.reason}`
+               );
+            }
+         });
+
+         // Log errors but don't fail the entire batch
+         if (errors.length > 0) {
+            console.warn(
+               `Batch fetch completed with ${errors.length}/${identifiers.length} errors`
+            );
+         }
+
+         return successful;
+      }, `Failed to batch fetch Pokemon`);
    }
 }
