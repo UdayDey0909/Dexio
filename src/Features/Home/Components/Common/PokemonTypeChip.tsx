@@ -1,13 +1,23 @@
 import React, { memo } from "react";
 import { View, Text, StyleSheet } from "react-native";
+import { PokemonTypeIcon } from "@/Assets/SVG/PokemonTypeIcons";
+import { getTypeColor, lightenColor } from "../../Utils/colorUtils";
 
 interface PokemonTypeChipProps {
    type: string;
 }
 
 const PokemonTypeChip: React.FC<PokemonTypeChipProps> = ({ type }) => {
+   const typeColor = lightenColor(getTypeColor(type), 2.1);
+
    return (
-      <View style={styles.typeChip}>
+      <View style={[styles.typeChip, { backgroundColor: typeColor }]}>
+         <PokemonTypeIcon
+            type={type}
+            size={16}
+            color="white"
+            style={styles.icon}
+         />
          <Text style={styles.typeText}>{type}</Text>
       </View>
    );
@@ -15,19 +25,36 @@ const PokemonTypeChip: React.FC<PokemonTypeChipProps> = ({ type }) => {
 
 const styles = StyleSheet.create({
    typeChip: {
-      marginBottom: 4,
-      paddingVertical: 4,
-      paddingHorizontal: 8,
-      borderRadius: 16,
-      backgroundColor: "rgba(255, 255, 255, 0.3)",
+      flexDirection: "row",
       alignItems: "center",
-      width: 70,
+      marginBottom: 4,
+      paddingVertical: 6,
+      paddingHorizontal: 10,
+      borderRadius: 20,
+      minWidth: 80,
+      justifyContent: "center",
+      // Add subtle shadow for depth
+      shadowColor: "#000",
+      shadowOffset: {
+         width: 0,
+         height: 1,
+      },
+      shadowOpacity: 0.2,
+      shadowRadius: 1.5,
+      elevation: 2,
+   },
+   icon: {
+      marginRight: 4,
    },
    typeText: {
-      color: "#fff",
+      color: "#333",
       fontSize: 12,
-      fontWeight: "bold",
+      fontWeight: "600",
+      textTransform: "capitalize",
       includeFontPadding: false,
+      textShadowColor: "rgba(0, 0, 0, 0.3)",
+      textShadowOffset: { width: 0.5, height: 0.5 },
+      textShadowRadius: 1,
    },
 });
 
