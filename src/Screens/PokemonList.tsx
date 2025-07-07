@@ -1,4 +1,5 @@
-import React, { useCallback, useMemo } from "react";
+// src/Screens/PokemonList.tsx
+import React, { useCallback } from "react";
 import {
    StyleSheet,
    SafeAreaView,
@@ -10,7 +11,7 @@ import PokemonGrid from "@/Features/Home/Components/PokemonGrid";
 import AppHeader from "@/Features/Home/Components/Common/AppHeader";
 import { COLORS } from "@/Features/Home/Constants/Colors";
 import { PokemonCardData } from "@/Features/Home/Types";
-import { usePokemonGrid } from "@/Features/Home/Hooks/usePokemonGrid";
+import { usePokemonList } from "@/Features/Home/Hooks/usePokemonList";
 
 export const PokemonList: React.FC = () => {
    const {
@@ -22,7 +23,7 @@ export const PokemonList: React.FC = () => {
       hasMore,
       onRefresh,
       loadMore,
-   } = usePokemonGrid(20, 0);
+   } = usePokemonList(20, 0);
 
    // Memoized Pokemon press handler
    const handlePokemonPress = useCallback((pokemon: PokemonCardData) => {

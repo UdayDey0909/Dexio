@@ -68,7 +68,7 @@ describe("BaseService", () => {
          new BaseService();
 
          expect(MainClient).toHaveBeenCalledWith({
-            cacheOptions: { ttl: 300000 }, // 5 minutes
+            cacheOptions: { ttl: 600000 }, // 10 minutes
          });
          expect(RetryManager).toHaveBeenCalledWith(3, 1000);
          expect(NetworkManager).toHaveBeenCalled();
@@ -328,7 +328,7 @@ describe("BaseService", () => {
             networkStatus: true,
             lastCheck: expect.any(String),
             cacheInfo: {
-               ttl: 300000,
+               ttl: 600000,
                maxItems: 100,
             },
             retryConfig: {
