@@ -5,11 +5,9 @@ import {
    StatusBar,
    Platform,
    Alert,
-   View,
-   Text,
 } from "react-native";
 import PokemonGrid from "@/Features/Home/Components/PokemonGrid";
-import AppHeader from "@/Features/Home/Components/AppHeader";
+import AppHeader from "@/Features/Home/Components/Common/AppHeader";
 import { COLORS } from "@/Features/Home/Constants/Colors";
 import { PokemonCardData } from "@/Features/Home/Types";
 import { usePokemonGrid } from "@/Features/Home/Hooks/usePokemonGrid";
@@ -24,7 +22,6 @@ export const PokemonList: React.FC = () => {
       hasMore,
       onRefresh,
       loadMore,
-      refetch,
    } = usePokemonGrid(20, 0);
 
    // Memoized Pokemon press handler
