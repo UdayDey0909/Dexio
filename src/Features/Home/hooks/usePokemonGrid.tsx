@@ -147,7 +147,7 @@ export const usePokemonGrid = (
       };
    }, []);
 
-   // Optimized fetch function with proper error handling and cancellation
+   // Optimized fetch function with batch fetching
    const fetchPokemon = useCallback(
       async (isRefresh = false, isLoadMore = false) => {
          // Prevent multiple simultaneous requests
@@ -186,16 +186,10 @@ export const usePokemonGrid = (
                (_, index) => currentOffset + index + 1
             ).filter((id) => id <= TOTAL_POKEMON);
 
-            // Batch fetch Pokemon details using IDs
-            const pokemonPromises = pokemonIds.map(async (id) => {
-               // Check if request was cancelled
-               if (abortControllerRef.current?.signal.aborted) {
-                  throw new Error("Request cancelled");
-               }
-               return pokemonService.getPokemon(id);
-            });
-
-            const pokemonList = await Promise.all(pokemonPromises);
+            // Use batch fetch instead of individual requests
+            const pokemonList = await pokemonService.core.batchGetPokemon(
+               pokemonIds
+            );
 
             // Check if component is still mounted and request wasn't cancelled
             if (
