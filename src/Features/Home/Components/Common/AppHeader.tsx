@@ -1,36 +1,35 @@
 import React from "react";
-import { View, Text, StyleSheet, Platform } from "react-native";
+import { View, Text, StyleSheet, Platform, Dimensions } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { COLORS } from "../../Constants/Colors";
 
 interface AppHeaderProps {
    title: string;
 }
 
+// Get screen height for responsive padding
+const { height: screenHeight } = Dimensions.get("window");
+const verticalPadding = screenHeight < 700 ? 12 : 20;
+
 const AppHeader: React.FC<AppHeaderProps> = ({ title }) => {
    return (
-      <View style={styles.header}>
-         <Text style={styles.title}>{title}</Text>
-      </View>
+      <SafeAreaView style={styles.safeArea}>
+         <View style={styles.header}>
+            <Text style={styles.title}>{title}</Text>
+         </View>
+      </SafeAreaView>
    );
 };
 
 const styles = StyleSheet.create({
+   safeArea: {
+      backgroundColor: COLORS.background,
+   },
    header: {
       backgroundColor: COLORS.background,
-      paddingVertical: 20,
+      paddingVertical: verticalPadding,
       paddingHorizontal: 16,
       alignItems: "center",
-      ...Platform.select({
-         ios: {
-            shadowColor: "#000",
-            shadowOffset: { width: 0, height: 2 },
-            shadowOpacity: 0.25,
-            shadowRadius: 3.84,
-         },
-         android: {
-            elevation: 5,
-         },
-      }),
    },
    title: {
       fontSize: 28,
