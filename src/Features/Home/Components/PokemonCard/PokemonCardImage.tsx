@@ -30,23 +30,24 @@ const PokemonCardImage: React.FC<PokemonCardImageProps> = ({
    const pokeballColors = useMemo(() => {
       if (types && types.length > 0) {
          const primaryTypeColor = getTypeColor(types[0]);
-         const lightenedColor = lightenColor(primaryTypeColor, 0.8);
-         const veryLightColor = lightenColor(primaryTypeColor, 0.9);
+         const lightenedColor = lightenColor(primaryTypeColor, 0.6);
+         const veryLightColor = lightenColor(primaryTypeColor, 0.8);
+         const mediumColor = lightenColor(primaryTypeColor, 0.4);
 
          return {
-            topColor: hexToRGBA(lightenedColor, 0.3),
-            bottomColor: hexToRGBA(lightenedColor, 0.2),
-            middleColor: hexToRGBA(veryLightColor, 0.4),
-            bandColor: hexToRGBA(lightenedColor, 0.25),
+            topColor: hexToRGBA(lightenedColor, 0.8),
+            bottomColor: hexToRGBA(lightenedColor, 0.8),
+            middleColor: hexToRGBA(veryLightColor, 0.9),
+            bandColor: hexToRGBA(mediumColor, 0.7),
          };
       }
 
       // Default neutral colors if no types
       return {
-         topColor: hexToRGBA("#cccccc", 0.3),
-         bottomColor: hexToRGBA("#cccccc", 0.2),
-         middleColor: hexToRGBA("#ffffff", 0.4),
-         bandColor: hexToRGBA("#cccccc", 0.25),
+         topColor: hexToRGBA("#cccccc", 0.8),
+         bottomColor: hexToRGBA("#cccccc", 0.8),
+         middleColor: hexToRGBA("#ffffff", 0.9),
+         bandColor: hexToRGBA("#999999", 0.7),
       };
    }, [types]);
 
@@ -60,23 +61,15 @@ const PokemonCardImage: React.FC<PokemonCardImageProps> = ({
       setImageLoaded(false);
    }, []);
 
-   const pokeballStyle = useMemo(
-      () => [styles.pokeballBackground, { backgroundColor: pokeballBGColor }],
-      [pokeballBGColor]
-   );
-
    const fallbackSource = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png`;
 
    return (
       <View style={styles.imageContainerMargin}>
          <View style={styles.imageContainer}>
-            {/* Original background circle */}
-            <View style={pokeballStyle} />
-
-            {/* Background Pokeball SVG */}
+            {/* Background Pokeball SVG - removed the circle background */}
             <View style={styles.backgroundPokeball}>
                <Pokeball
-                  size={CARD_DIMENSIONS.pokeballSize * 0.8}
+                  size={CARD_DIMENSIONS.pokeballSize}
                   topColor={pokeballColors.topColor}
                   bottomColor={pokeballColors.bottomColor}
                   middleColor={pokeballColors.middleColor}

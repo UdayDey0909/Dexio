@@ -71,14 +71,9 @@ export const styles = StyleSheet.create({
       justifyContent: "center",
       alignItems: "center",
    },
-   pokeballBackground: {
-      position: "absolute",
-      width: CARD_DIMENSIONS.pokeballSize,
-      height: CARD_DIMENSIONS.pokeballSize,
-      borderRadius: CARD_DIMENSIONS.pokeballSize / 2,
-      opacity: 0.6,
-   },
-   // New style for the background pokeball SVG
+   // Removed the pokeballBackground style - no longer needed
+
+   // Enhanced background pokeball SVG styling
    backgroundPokeball: {
       position: "absolute",
       width: CARD_DIMENSIONS.pokeballSize,
@@ -86,7 +81,6 @@ export const styles = StyleSheet.create({
       justifyContent: "center",
       alignItems: "center",
       zIndex: 0,
-      opacity: 0.8,
    },
    image: {
       width: CARD_DIMENSIONS.imageSize,
