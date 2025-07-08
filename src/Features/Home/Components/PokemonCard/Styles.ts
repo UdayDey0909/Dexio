@@ -78,6 +78,16 @@ export const styles = StyleSheet.create({
       borderRadius: CARD_DIMENSIONS.pokeballSize / 2,
       opacity: 0.6,
    },
+   // New style for the background pokeball SVG
+   backgroundPokeball: {
+      position: "absolute",
+      width: CARD_DIMENSIONS.pokeballSize,
+      height: CARD_DIMENSIONS.pokeballSize,
+      justifyContent: "center",
+      alignItems: "center",
+      zIndex: 0,
+      opacity: 0.8,
+   },
    image: {
       width: CARD_DIMENSIONS.imageSize,
       height: CARD_DIMENSIONS.imageSize,

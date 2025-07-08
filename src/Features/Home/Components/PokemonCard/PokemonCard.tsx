@@ -65,6 +65,7 @@ const PokemonCard: React.FC<PokemonCardProps> = ({
                id={id}
                image={image}
                pokeballBGColor={pokeballBGColor}
+               types={types} // Pass types to PokemonCardImage
             />
          </View>
       </Pressable>
