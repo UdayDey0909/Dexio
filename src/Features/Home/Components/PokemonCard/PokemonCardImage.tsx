@@ -1,5 +1,5 @@
 import React, { memo, useState, useCallback, useMemo } from "react";
-import { getTypeColor, lightenColor } from "../../Utils/colorUtils";
+import { getTypeColor, lightenColor } from "@/Theme/Utils/PokeBallBG";
 import { CARD_DIMENSIONS } from "../../Constants/Dimensions";
 import Pokeball from "@/Assets/SVG/PokeBall";
 import { View } from "react-native";

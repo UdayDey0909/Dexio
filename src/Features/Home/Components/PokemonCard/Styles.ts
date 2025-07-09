@@ -1,5 +1,7 @@
 import { CARD_DIMENSIONS } from "../../Constants/Dimensions";
 import { StyleSheet, Platform } from "react-native";
+import { Fonts } from "@/Theme/Fonts";
+import { baseColors } from "@/Theme/Core/Colors";
 
 export const styles = StyleSheet.create({
    //* ----- PokemonCard ----- */
@@ -16,7 +18,7 @@ export const styles = StyleSheet.create({
       height: CARD_DIMENSIONS.height,
       ...Platform.select({
          ios: {
-            shadowColor: "#000",
+            shadowColor: baseColors.black,
             shadowOffset: { width: 0, height: 2 },
             shadowOpacity: 0.25,
             shadowRadius: 3.84,
@@ -43,8 +45,8 @@ export const styles = StyleSheet.create({
    },
    name: {
       fontSize: 18,
-      fontWeight: "bold",
-      color: "#FFF",
+      fontFamily: Fonts.headingSemiBold,
+      color: baseColors.white,
       textShadowColor: "rgba(0, 0, 0, 0.75)",
       textShadowOffset: { width: 1, height: 1 },
       textShadowRadius: 2,
@@ -53,8 +55,8 @@ export const styles = StyleSheet.create({
    },
    pokedexNumber: {
       fontSize: 16,
-      fontWeight: "400",
-      color: "#fff",
+      fontFamily: Fonts.primaryRegular,
+      color: baseColors.white,
       textShadowColor: "rgba(0, 0, 0, 0.75)",
       textShadowOffset: { width: 0.7, height: 0.7 },
       textShadowRadius: 1,
@@ -101,7 +103,7 @@ export const styles = StyleSheet.create({
    skeletonPlaceholder: {
       width: CARD_DIMENSIONS.imageSize,
       height: CARD_DIMENSIONS.imageSize,
-      backgroundColor: "rgba(255, 255, 255, 0.1)",
+      backgroundColor: `${baseColors.white}1A`,
       borderRadius: 8,
       zIndex: 1,
       position: "absolute",
@@ -112,7 +114,7 @@ export const styles = StyleSheet.create({
    skeletonShimmer: {
       width: "60%",
       height: "60%",
-      backgroundColor: "rgba(255, 255, 255, 0.2)",
+      backgroundColor: `${baseColors.white}33`,
       borderRadius: 50,
    },
    fallbackImage: {

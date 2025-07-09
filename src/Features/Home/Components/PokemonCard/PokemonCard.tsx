@@ -1,5 +1,5 @@
 import React, { useCallback, useRef, useMemo, memo } from "react";
-import { getTypeColor, lightenColor } from "../../Utils/colorUtils";
+import { getTypeColor, lightenColor } from "@/Theme/Utils/PokeBallBG";
 import { TIMING } from "../../Constants/Dimensions";
 import PokemonCardHeader from "./PokemonCardHeader";
 import PokemonCardImage from "./PokemonCardImage";
