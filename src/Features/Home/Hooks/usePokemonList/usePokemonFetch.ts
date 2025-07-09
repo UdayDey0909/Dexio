@@ -1,7 +1,7 @@
 import { useCallback, useRef } from "react";
-import { pokemonService } from "@/Services/API";
 import { PokemonListState, PokemonListAction } from "./Types";
 import { POKEMON_LIST_CONSTANTS } from "./Constants";
+import { pokemonService } from "@/Services/API";
 import {
    transformPokemonToCardData,
    generatePokemonIds,

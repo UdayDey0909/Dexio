@@ -1,9 +1,8 @@
-// constants/colors.ts
 export const POKEMON_TYPE_COLORS = {
    normal: "#A8A878",
    fire: "#F08030",
    water: "#6890F0",
-   electric: "#F8D030",
+   electric: "#F7D02C",
    grass: "#78C850",
    ice: "#98D8D8",
    fighting: "#C03028",
@@ -11,11 +10,11 @@ export const POKEMON_TYPE_COLORS = {
    ground: "#E0C068",
    flying: "#A890F0",
    psychic: "#F85888",
-   bug: "#A8B820",
+   bug: "#A6B91A",
    rock: "#B8A038",
    ghost: "#705898",
-   dragon: "#7038F8",
-   dark: "#705848",
+   dragon: "#6F35FC",
+   dark: "#705746",
    steel: "#B8B8D0",
    fairy: "#EE99AC",
 };

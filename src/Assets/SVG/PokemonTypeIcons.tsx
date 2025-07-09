@@ -11,7 +11,7 @@ interface TypeIconProps {
 // Bug Type Icon
 export const BugIcon: React.FC<TypeIconProps> = ({
    size = 24,
-   color = "#A6B91A",
+   color = "#FFFFFF",
    style,
 }) => (
    <View style={[{ width: size, height: size }, style]}>
@@ -29,7 +29,7 @@ export const BugIcon: React.FC<TypeIconProps> = ({
 // Dark Type Icon
 export const DarkIcon: React.FC<TypeIconProps> = ({
    size = 24,
-   color = "#705746",
+   color = "#FFFFFF",
    style,
 }) => (
    <View style={[{ width: size, height: size }, style]}>
@@ -47,7 +47,7 @@ export const DarkIcon: React.FC<TypeIconProps> = ({
 // Dragon Type Icon
 export const DragonIcon: React.FC<TypeIconProps> = ({
    size = 24,
-   color = "#6F35FC",
+   color = "#FFFFFF",
    style,
 }) => (
    <View style={[{ width: size, height: size }, style]}>
@@ -65,7 +65,7 @@ export const DragonIcon: React.FC<TypeIconProps> = ({
 // Electric Type Icon
 export const ElectricIcon: React.FC<TypeIconProps> = ({
    size = 24,
-   color = "#F7D02C", // Electric type yellow
+   color = "#FFFFFF",
    style,
 }) => (
    <View style={[{ width: size, height: size }, style]}>
@@ -83,7 +83,7 @@ export const ElectricIcon: React.FC<TypeIconProps> = ({
 // Fairy Type Icon
 export const FairyIcon: React.FC<TypeIconProps> = ({
    size = 24,
-   color = "#EE99AC", // Fairy type color
+   color = "#FFFFFF",
    style,
 }) => (
    <View style={[{ width: size, height: size }, style]}>
@@ -101,7 +101,7 @@ export const FairyIcon: React.FC<TypeIconProps> = ({
 // Fighting Type Icon
 export const FightingIcon: React.FC<TypeIconProps> = ({
    size = 24,
-   color = "#C03028", // Fighting type color
+   color = "#FFFFFF",
    style,
 }) => (
    <View style={[{ width: size, height: size }, style]}>
@@ -119,7 +119,7 @@ export const FightingIcon: React.FC<TypeIconProps> = ({
 // Fire Type Icon
 export const FireIcon: React.FC<TypeIconProps> = ({
    size = 24,
-   color = "#F08030",
+   color = "#FFFFFF",
    style,
 }) => (
    <View style={[{ width: size, height: size }, style]}>
@@ -137,7 +137,7 @@ export const FireIcon: React.FC<TypeIconProps> = ({
 // Flying Type Icon
 export const FlyingIcon: React.FC<TypeIconProps> = ({
    size = 24,
-   color = "#A890F0",
+   color = "#FFFFFF",
    style,
 }) => (
    <View style={[{ width: size, height: size }, style]}>
@@ -155,7 +155,7 @@ export const FlyingIcon: React.FC<TypeIconProps> = ({
 // Ghost Type Icon
 export const GhostIcon: React.FC<TypeIconProps> = ({
    size = 24,
-   color = "#705898",
+   color = "#FFFFFF",
    style,
 }) => (
    <View style={[{ width: size, height: size }, style]}>
@@ -173,7 +173,7 @@ export const GhostIcon: React.FC<TypeIconProps> = ({
 // Grass Type Icon
 export const GrassIcon: React.FC<TypeIconProps> = ({
    size = 24,
-   color = "#78C850",
+   color = "#FFFFFF",
    style,
 }) => (
    <View style={[{ width: size, height: size }, style]}>
@@ -191,7 +191,7 @@ export const GrassIcon: React.FC<TypeIconProps> = ({
 // Ground Type Icon
 export const GroundIcon: React.FC<TypeIconProps> = ({
    size = 24,
-   color = "#E0C068",
+   color = "#FFFFFF",
    style,
 }) => (
    <View style={[{ width: size, height: size }, style]}>
@@ -209,7 +209,7 @@ export const GroundIcon: React.FC<TypeIconProps> = ({
 // Ice Type Icon
 export const IceIcon: React.FC<TypeIconProps> = ({
    size = 24,
-   color = "#98D8D8",
+   color = "#FFFFFF",
    style,
 }) => (
    <View style={[{ width: size, height: size }, style]}>
@@ -257,7 +257,7 @@ export const IceIcon: React.FC<TypeIconProps> = ({
 // Normal Type Icon
 export const NormalIcon: React.FC<TypeIconProps> = ({
    size = 24,
-   color = "#A8A878",
+   color = "#FFFFFF",
    style,
 }) => (
    <View style={[{ width: size, height: size }, style]}>
@@ -275,7 +275,7 @@ export const NormalIcon: React.FC<TypeIconProps> = ({
 // Poison Type Icon
 export const PoisonIcon: React.FC<TypeIconProps> = ({
    size = 24,
-   color = "#A040A0",
+   color = "#FFFFFF",
    style,
 }) => (
    <View style={[{ width: size, height: size }, style]}>
@@ -293,7 +293,7 @@ export const PoisonIcon: React.FC<TypeIconProps> = ({
 // Psychic Type Icon
 export const PsychicIcon: React.FC<TypeIconProps> = ({
    size = 24,
-   color = "#F85888",
+   color = "#FFFFFF",
    style,
 }) => (
    <View style={[{ width: size, height: size }, style]}>
@@ -311,7 +311,7 @@ export const PsychicIcon: React.FC<TypeIconProps> = ({
 // Rock Type Icon
 export const RockIcon: React.FC<TypeIconProps> = ({
    size = 24,
-   color = "#B8A038",
+   color = "#FFFFFF",
    style,
 }) => (
    <View style={[{ width: size, height: size }, style]}>
@@ -329,7 +329,7 @@ export const RockIcon: React.FC<TypeIconProps> = ({
 // Steel Type Icon
 export const SteelIcon: React.FC<TypeIconProps> = ({
    size = 24,
-   color = "#B8B8D0",
+   color = "#FFFFFF",
    style,
 }) => (
    <View style={[{ width: size, height: size }, style]}>
@@ -347,7 +347,7 @@ export const SteelIcon: React.FC<TypeIconProps> = ({
 // Water Type Icon
 export const WaterIcon: React.FC<TypeIconProps> = ({
    size = 24,
-   color = "#6890F0",
+   color = "#FFFFFF",
    style,
 }) => (
    <View style={[{ width: size, height: size }, style]}>

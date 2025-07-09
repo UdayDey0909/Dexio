@@ -1,12 +1,12 @@
 import React, { useCallback, useRef, useMemo, memo } from "react";
-import { Pressable, View } from "react-native";
-import { styles } from "./Styles";
-import { PokemonCardProps } from "../../Types";
-import PokemonCardImage from "./PokemonCardImage";
-import PokemonCardTypes from "./PokemonCardTypes";
+import { getTypeColor, lightenColor } from "../../Utils/colorUtils";
 import { TIMING } from "../../Constants/Dimensions";
 import PokemonCardHeader from "./PokemonCardHeader";
-import { getTypeColor, lightenColor } from "../../Utils/colorUtils";
+import PokemonCardImage from "./PokemonCardImage";
+import PokemonCardTypes from "./PokemonCardTypes";
+import { PokemonCardProps } from "../../Types";
+import { Pressable, View } from "react-native";
+import { styles } from "./Styles";
 
 const PokemonCard: React.FC<PokemonCardProps> = ({
    name,
@@ -15,6 +15,11 @@ const PokemonCard: React.FC<PokemonCardProps> = ({
    types,
    onPress,
 }) => {
+   /**
+    * Determine the card background color and pokeball background color
+    * based on the primary type of the Pokémon.
+    * If no types are provided, default to light grey.
+    */
    const { cardBackgroundColor, pokeballBGColor } = useMemo(() => {
       if (types && types.length > 0) {
          const baseColor = getTypeColor(types[0]);
@@ -32,6 +37,11 @@ const PokemonCard: React.FC<PokemonCardProps> = ({
       };
    }, [types]);
 
+   /*
+    * Use a ref to track the last press time for double-tap detection
+    * This prevents the need for state updates and re-renders on every press
+    * It allows us to handle double-tap detection efficiently.
+    */
    const lastPressRef = useRef(0);
    const handlePress = useCallback(() => {
       const currentTime = Date.now();
@@ -41,6 +51,11 @@ const PokemonCard: React.FC<PokemonCardProps> = ({
       }
    }, [onPress]);
 
+   /**
+    * Memoize the card style to avoid unnecessary recalculations
+    * This ensures that the style is only recalculated when the
+    * cardBackgroundColor changes, improving performance.
+    */
    const cardStyle = useMemo(
       () => [styles.cardContainer, { backgroundColor: cardBackgroundColor }],
       [cardBackgroundColor]
@@ -57,8 +72,10 @@ const PokemonCard: React.FC<PokemonCardProps> = ({
          }}
          hitSlop={{ top: 5, bottom: 5, left: 5, right: 5 }}
       >
+         {/* Render the PokemonCardHeader component */}
          <PokemonCardHeader name={name} id={id} />
 
+         {/* Render the card body with types and image */}
          <View style={styles.cardBody}>
             <PokemonCardTypes types={types} />
             <PokemonCardImage
@@ -72,6 +89,9 @@ const PokemonCard: React.FC<PokemonCardProps> = ({
    );
 };
 
+/**
+ * Memoize the PokemonCard component to prevent unnecessary re-renders
+ */
 export default memo(PokemonCard, (prevProps, nextProps) => {
    return (
       prevProps.id === nextProps.id &&

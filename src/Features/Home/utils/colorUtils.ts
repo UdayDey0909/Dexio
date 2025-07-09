@@ -1,4 +1,3 @@
-// utils/colorUtils.ts
 import { POKEMON_TYPE_COLORS } from "../Constants/Colors";
 
 /**

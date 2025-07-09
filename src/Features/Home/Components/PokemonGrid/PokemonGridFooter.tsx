@@ -1,6 +1,6 @@
 import React, { memo } from "react";
-import { View } from "react-native";
 import LoadingState from "../States/LoadingState";
+import { View } from "react-native";
 import { styles } from "./Styles";
 
 interface PokemonGridFooterProps {
@@ -8,6 +8,11 @@ interface PokemonGridFooterProps {
    pokemonCount: number;
 }
 
+/**
+ * Component to render the footer of the Pokémon grid.
+ * It displays a loading state when more Pokémon are being loaded.
+ * This is useful for infinite scrolling scenarios.
+ */
 const PokemonGridFooter: React.FC<PokemonGridFooterProps> = ({
    loadingMore,
    pokemonCount,
@@ -16,6 +21,7 @@ const PokemonGridFooter: React.FC<PokemonGridFooterProps> = ({
 
    return (
       <View style={styles.footerContainer}>
+         {/* //! Add Proper Loading State Animation Later */}
          <LoadingState message="Loading more Pokémon..." />
       </View>
    );

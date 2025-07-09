@@ -8,53 +8,46 @@ interface PokemonTypeChipProps {
 }
 
 const PokemonTypeChip: React.FC<PokemonTypeChipProps> = ({ type }) => {
-   const typeColor = lightenColor(getTypeColor(type), 2.1);
+   const typeColor = getTypeColor(type);
+   const lighterTypeColor = lightenColor(typeColor, 0.15);
 
    return (
-      <View style={[styles.typeChip, { backgroundColor: typeColor }]}>
+      <View style={[styles.typeChip, { backgroundColor: lighterTypeColor }]}>
+         {/* Using PokemonTypeIcon component to render the type icon */}
          <PokemonTypeIcon
             type={type}
             size={16}
             color="white"
             style={styles.icon}
          />
-         <Text style={styles.typeText}>{type}</Text>
+         {/* Displaying the type name */}
+         <Text style={styles.typeText}>{type.toUpperCase()}</Text>
       </View>
    );
 };
 
 const styles = StyleSheet.create({
    typeChip: {
-      flexDirection: "row",
-      alignItems: "center",
       marginBottom: 4,
       paddingVertical: 6,
-      paddingHorizontal: 10,
-      borderRadius: 20,
-      minWidth: 80,
+      paddingHorizontal: 5,
+      borderRadius: 16,
+      flexDirection: "row",
       justifyContent: "center",
-      // Add subtle shadow for depth
-      shadowColor: "#000",
-      shadowOffset: {
-         width: 0,
-         height: 1,
-      },
-      shadowOpacity: 0.2,
-      shadowRadius: 1.5,
-      elevation: 2,
+      alignItems: "center",
+      minWidth: 72,
    },
    icon: {
       marginRight: 4,
    },
    typeText: {
-      color: "#333",
+      color: "#fff",
       fontSize: 12,
       fontWeight: "600",
-      textTransform: "capitalize",
       includeFontPadding: false,
       textShadowColor: "rgba(0, 0, 0, 0.3)",
-      textShadowOffset: { width: 0.5, height: 0.5 },
-      textShadowRadius: 1,
+      textShadowOffset: { width: 1, height: 1 },
+      textShadowRadius: 1.5,
    },
 });
 

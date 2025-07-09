@@ -7,10 +7,17 @@ interface AppHeaderProps {
    title: string;
 }
 
-// Get screen height for responsive padding
+/**
+ * Dimensions and padding adjustments for the header based on screen height.
+ * This ensures the header looks good on both small and large screens.
+ */
 const { height: screenHeight } = Dimensions.get("window");
-const verticalPadding = screenHeight < 700 ? 12 : 20;
+const paddingTop = screenHeight < 700 ? 12 : 16;
+const paddingBottom = screenHeight < 700 ? 12 : 0;
 
+/**
+ * AppHeader component to display the application title.
+ */
 const AppHeader: React.FC<AppHeaderProps> = ({ title }) => {
    return (
       <SafeAreaView style={styles.safeArea}>
@@ -27,12 +34,13 @@ const styles = StyleSheet.create({
    },
    header: {
       backgroundColor: COLORS.background,
-      paddingVertical: verticalPadding,
+      paddingTop: paddingTop,
+      paddingBottom: paddingBottom,
       paddingHorizontal: 16,
       alignItems: "center",
    },
    title: {
-      fontSize: 28,
+      fontSize: 42,
       fontWeight: "bold",
       color: COLORS.text.light,
       textAlign: "center",

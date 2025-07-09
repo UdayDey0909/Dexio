@@ -1,4 +1,3 @@
-// types/pokemon.ts
 export interface PokemonCardData {
    id: number;
    name: string;

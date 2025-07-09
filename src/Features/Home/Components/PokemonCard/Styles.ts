@@ -1,10 +1,17 @@
-import { StyleSheet, Platform } from "react-native";
 import { CARD_DIMENSIONS } from "../../Constants/Dimensions";
+import { StyleSheet, Platform } from "react-native";
 
 export const styles = StyleSheet.create({
+   //* ----- PokemonCard ----- */
+
+   //? ----- Card Container ----- */
    cardContainer: {
-      padding: 8,
+      paddingTop: 8,
+      paddingLeft: 6,
+      paddingRight: 8,
+      paddingBottom: 4,
       borderRadius: 12,
+      overflow: "hidden",
       width: CARD_DIMENSIONS.width,
       height: CARD_DIMENSIONS.height,
       ...Platform.select({
@@ -19,10 +26,15 @@ export const styles = StyleSheet.create({
          },
       }),
    },
+   //? ----- Card Pressed State ----- */
    cardPressed: {
       opacity: 0.8,
       transform: [{ scale: 0.98 }],
    },
+
+   //* ----- PokemonCardHeader ----- */
+
+   //? ----- Card Header (Name and ID) ----- */
    cardHeader: {
       flexDirection: "row",
       justifyContent: "space-between",
@@ -32,7 +44,7 @@ export const styles = StyleSheet.create({
    name: {
       fontSize: 18,
       fontWeight: "bold",
-      color: "#fff",
+      color: "#FFF",
       textShadowColor: "rgba(0, 0, 0, 0.75)",
       textShadowOffset: { width: 1, height: 1 },
       textShadowRadius: 2,
@@ -71,9 +83,6 @@ export const styles = StyleSheet.create({
       justifyContent: "center",
       alignItems: "center",
    },
-   // Removed the pokeballBackground style - no longer needed
-
-   // Enhanced background pokeball SVG styling
    backgroundPokeball: {
       position: "absolute",
       width: CARD_DIMENSIONS.pokeballSize,
@@ -81,6 +90,7 @@ export const styles = StyleSheet.create({
       justifyContent: "center",
       alignItems: "center",
       zIndex: 0,
+      transform: [{ rotate: "-30deg" }],
    },
    image: {
       width: CARD_DIMENSIONS.imageSize,

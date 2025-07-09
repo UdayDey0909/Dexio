@@ -1,7 +1,7 @@
 import React, { memo, useCallback } from "react";
-import { View } from "react-native";
-import PokemonCard from "../PokemonCard";
 import { PokemonCardData } from "../../Types";
+import PokemonCard from "../PokemonCard";
+import { View } from "react-native";
 import { styles } from "./Styles";
 
 interface PokemonGridItemProps {
@@ -9,6 +9,10 @@ interface PokemonGridItemProps {
    onPress?: (pokemon: PokemonCardData) => void;
 }
 
+/**
+ * Component to render a single Pokémon card in the grid.
+ * It handles the onPress event and passes the pokemon data to the parent component.
+ */
 const PokemonGridItem: React.FC<PokemonGridItemProps> = ({
    pokemon,
    onPress,

@@ -1,4 +1,3 @@
-// components/LoadingState.tsx
 import React from "react";
 import { View, Text, ActivityIndicator, StyleSheet } from "react-native";
 import { COLORS } from "../../Constants/Colors";

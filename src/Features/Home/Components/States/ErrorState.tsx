@@ -1,4 +1,3 @@
-// components/ErrorState.tsx
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { COLORS } from "../../Constants/Colors";
