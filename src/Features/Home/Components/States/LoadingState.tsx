@@ -1,6 +1,7 @@
 import React from "react";
 import { View, Text, ActivityIndicator, StyleSheet } from "react-native";
-import { COLORS } from "../../Constants/Colors";
+import { lightThemeColors } from "@/Theme/Core/Variants";
+import { Fonts } from "@/Theme/Fonts";
 
 interface LoadingStateProps {
    message?: string;
@@ -11,7 +12,7 @@ const LoadingState: React.FC<LoadingStateProps> = ({
 }) => {
    return (
       <View style={styles.container}>
-         <ActivityIndicator size="large" color={COLORS.accent} />
+         <ActivityIndicator size="large" color={lightThemeColors.accent} />
          <Text style={styles.text}>{message}</Text>
       </View>
    );
@@ -25,10 +26,10 @@ const styles = StyleSheet.create({
       paddingVertical: 40,
    },
    text: {
-      fontSize: 18,
+      fontSize: 16,
       marginTop: 10,
-      color: COLORS.text.light,
-      fontWeight: "400",
+      color: lightThemeColors.text.secondary,
+      fontFamily: Fonts.primaryRegular,
    },
 });
 

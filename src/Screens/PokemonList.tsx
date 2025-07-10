@@ -1,7 +1,7 @@
 import React, { useCallback } from "react";
 import PokemonGrid from "@/Features/Home/Components/PokemonGrid";
 import AppHeader from "@/Features/Home/Components/Common/AppHeader";
-import { COLORS } from "@/Features/Home/Constants/Colors";
+import { lightThemeColors } from "@/Theme/Core/Variants";
 import { PokemonCardData } from "@/Features/Home/Types";
 import { usePokemonList } from "@/Features/Home/Hooks/usePokemonList";
 import {
@@ -46,8 +46,8 @@ export const PokemonList: React.FC = () => {
    return (
       <SafeAreaView style={styles.container}>
          <StatusBar
-            backgroundColor={COLORS.background}
-            barStyle="light-content"
+            backgroundColor={lightThemeColors.background.primary}
+            barStyle="dark-content"
             translucent={Platform.OS === "ios"}
          />
 
@@ -71,6 +71,6 @@ export const PokemonList: React.FC = () => {
 const styles = StyleSheet.create({
    container: {
       flex: 1,
-      backgroundColor: COLORS.background,
+      backgroundColor: lightThemeColors.background.primary,
    },
 });

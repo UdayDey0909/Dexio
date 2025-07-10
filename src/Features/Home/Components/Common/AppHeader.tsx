@@ -1,7 +1,8 @@
 import React from "react";
 import { View, Text, StyleSheet, Platform, Dimensions } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { COLORS } from "../../Constants/Colors";
+import { lightThemeColors } from "@/Theme/Core/Variants";
+import { Fonts } from "@/Theme/Fonts";
 
 interface AppHeaderProps {
    title: string;
@@ -30,10 +31,10 @@ const AppHeader: React.FC<AppHeaderProps> = ({ title }) => {
 
 const styles = StyleSheet.create({
    safeArea: {
-      backgroundColor: COLORS.background,
+      backgroundColor: lightThemeColors.background.primary,
    },
    header: {
-      backgroundColor: COLORS.background,
+      backgroundColor: lightThemeColors.background.primary,
       paddingTop: paddingTop,
       paddingBottom: paddingBottom,
       paddingHorizontal: 16,
@@ -41,8 +42,8 @@ const styles = StyleSheet.create({
    },
    title: {
       fontSize: 42,
-      fontWeight: "bold",
-      color: COLORS.text.light,
+      fontFamily: Fonts.headingBold,
+      color: lightThemeColors.text.primary,
       textAlign: "center",
    },
 });

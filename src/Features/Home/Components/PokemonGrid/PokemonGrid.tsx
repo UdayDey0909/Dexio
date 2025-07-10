@@ -4,7 +4,7 @@ import { View, RefreshControl } from "react-native";
 import PokemonGridFooter from "./PokemonGridFooter";
 import LoadingState from "../States/LoadingState";
 import PokemonGridItem from "./PokemonGridItem";
-import { COLORS } from "../../Constants/Colors";
+import { lightThemeColors } from "@/Theme/Core/Variants";
 import ErrorState from "../States/ErrorState";
 import EmptyState from "../States/EmptyState";
 import { PokemonCardData } from "../../Types";
@@ -63,7 +63,7 @@ const PokemonGrid: React.FC<PokemonGridProps> = ({
     */
    const renderEmptyComponent = useCallback(() => {
       if (loading && pokemonData.length === 0) {
-         return <LoadingState message="Loading Pokémon..." />; //! Add Proper Loading Animation Later
+         return <LoadingState message="Loading Pokémon..." />;
       }
       if (error) {
          return <ErrorState error={new Error(error)} />;
@@ -130,9 +130,9 @@ const PokemonGrid: React.FC<PokemonGridProps> = ({
          <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            colors={[COLORS.accent]}
-            tintColor={COLORS.accent}
-            progressBackgroundColor="#1f2937"
+            colors={[lightThemeColors.accent]}
+            tintColor={lightThemeColors.accent}
+            progressBackgroundColor={lightThemeColors.background.secondary}
          />
       ),
       [refreshing, onRefresh]

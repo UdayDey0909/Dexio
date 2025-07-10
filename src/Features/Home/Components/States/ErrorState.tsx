@@ -1,6 +1,7 @@
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
-import { COLORS } from "../../Constants/Colors";
+import { lightThemeColors } from "@/Theme/Core/Variants";
+import { Fonts } from "@/Theme/Fonts";
 
 interface ErrorStateProps {
    error: Error;
@@ -25,19 +26,18 @@ const styles = StyleSheet.create({
       paddingVertical: 40,
    },
    errorText: {
-      color: COLORS.error,
-      fontSize: 18,
+      color: lightThemeColors.system.error,
+      fontSize: 16,
       textAlign: "center",
       marginTop: 40,
-      fontWeight: "500",
+      fontFamily: Fonts.primaryMedium,
    },
    errorSubtext: {
-      color: COLORS.text.light,
+      color: lightThemeColors.text.muted,
       fontSize: 14,
       textAlign: "center",
       marginTop: 10,
-      opacity: 0.7,
-      fontWeight: "400",
+      fontFamily: Fonts.primaryRegular,
    },
 });
 

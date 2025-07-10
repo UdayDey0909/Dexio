@@ -21,7 +21,6 @@ const PokemonGridFooter: React.FC<PokemonGridFooterProps> = ({
 
    return (
       <View style={styles.footerContainer}>
-         {/* //! Add Proper Loading State Animation Later */}
          <LoadingState message="Loading more Pokémon..." />
       </View>
    );

@@ -1,7 +1,8 @@
 import React, { memo } from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { PokemonTypeIcon } from "@/Assets/SVG/PokemonTypeIcons";
-import { getTypeColor, lightenColor } from "../../Utils/colorUtils";
+import { getTypeColor, lightenColor } from "@/Theme/Utils/PokeBallBG";
+import { Fonts } from "@/Theme/Fonts";
 
 interface PokemonTypeChipProps {
    type: string;
@@ -43,7 +44,7 @@ const styles = StyleSheet.create({
    typeText: {
       color: "#fff",
       fontSize: 12,
-      fontWeight: "600",
+      fontFamily: Fonts.primaryMedium,
       includeFontPadding: false,
       textShadowColor: "rgba(0, 0, 0, 0.3)",
       textShadowOffset: { width: 1, height: 1 },

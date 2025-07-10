@@ -1,6 +1,7 @@
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
-import { COLORS } from "../../Constants/Colors";
+import { lightThemeColors } from "@/Theme/Core/Variants";
+import { Fonts } from "@/Theme/Fonts";
 
 const EmptyState: React.FC = () => {
    return (
@@ -18,11 +19,11 @@ const styles = StyleSheet.create({
       paddingVertical: 40,
    },
    text: {
-      color: COLORS.text.light,
-      fontSize: 18,
+      color: lightThemeColors.text.secondary,
+      fontSize: 16,
       textAlign: "center",
       marginTop: 40,
-      fontWeight: "400",
+      fontFamily: Fonts.primaryRegular,
    },
 });
 
