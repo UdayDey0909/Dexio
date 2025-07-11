@@ -1,11 +1,17 @@
 // src/Features/PokemonDetails/Hooks/usePokemonDetail.ts
-import { useState, useEffect, useMemo } from "react";
-import { PokemonService } from "@/Services/API/Pokemon";
-import type { Pokemon, PokemonSpecies } from "pokenode-ts";
+import { useState, useEffect, useCallback, useMemo } from "react";
+import { PokemonData } from "@/Services/API/Pokemon/PokemonData";
+import { PokemonSpecies } from "@/Services/API/Pokemon/PokemonSpecies";
+import { PokemonStats } from "@/Services/API/Pokemon/PokemonStats";
+import type {
+   Pokemon,
+   PokemonSpecies as PokemonSpeciesType,
+} from "pokenode-ts";
 
 interface PokemonDetailData {
    pokemon: Pokemon | null;
-   species: PokemonSpecies | null;
+   species: PokemonSpeciesType | null;
+   stats: any | null;
 }
 
 interface UsePokemonDetailReturn {
@@ -19,74 +25,86 @@ interface UsePokemonDetailReturn {
    hasShinySprite: boolean;
 }
 
+const pokemonDataService = new PokemonData();
+const pokemonSpeciesService = new PokemonSpecies();
+const pokemonStatsService = new PokemonStats();
+
 export const usePokemonDetail = (pokemonId: string): UsePokemonDetailReturn => {
    const [pokemonData, setPokemonData] = useState<PokemonDetailData>({
       pokemon: null,
       species: null,
+      stats: null,
    });
    const [loading, setLoading] = useState(true);
    const [error, setError] = useState<string | null>(null);
    const [isShiny, setIsShiny] = useState(false);
 
-   const fetchPokemonData = async () => {
+   const fetchPokemonDetail = useCallback(async () => {
+      if (!pokemonId) return;
+
+      setLoading(true);
+      setError(null);
+
       try {
-         setLoading(true);
-         setError(null);
+         // Fetch Pokemon basic data
+         const pokemon = await pokemonDataService.getPokemon(pokemonId);
 
-         const pokemonService = new PokemonService();
+         // Fetch Pokemon species data
+         const species = await pokemonSpeciesService.getPokemonSpecies(
+            pokemonId
+         );
 
-         // Fetch Pokemon and Species data in parallel
-         const [pokemon, species] = await Promise.all([
-            pokemonService.getPokemon(pokemonId),
-            pokemonService.getPokemonSpecies(pokemonId),
-         ]);
+         // Fetch Pokemon stats (optional, can be null if service doesn't exist)
+         let stats = null;
+         try {
+            stats = await pokemonStatsService.getPokemonStats(pokemonId);
+         } catch (statsError) {
+            console.warn("Stats service not available:", statsError);
+         }
 
          setPokemonData({
             pokemon,
             species,
+            stats,
          });
       } catch (err) {
          setError(
-            err instanceof Error ? err.message : "Failed to fetch Pokemon data"
+            err instanceof Error
+               ? err.message
+               : "Failed to fetch Pokemon details"
          );
+         console.error("Error fetching Pokemon details:", err);
       } finally {
          setLoading(false);
       }
-   };
+   }, [pokemonId]);
 
    useEffect(() => {
-      if (pokemonId) {
-         fetchPokemonData();
-      }
-   }, [pokemonId]);
+      fetchPokemonDetail();
+   }, [fetchPokemonDetail]);
+
+   const refetch = useCallback(() => {
+      fetchPokemonDetail();
+   }, [fetchPokemonDetail]);
+
+   const toggleShiny = useCallback(() => {
+      setIsShiny((prev) => !prev);
+   }, []);
 
    const currentSprite = useMemo(() => {
       if (!pokemonData.pokemon) return "";
 
+      const sprites = pokemonData.pokemon.sprites;
       if (isShiny) {
-         return (
-            pokemonData.pokemon.sprites.front_shiny ||
-            pokemonData.pokemon.sprites.front_default ||
-            ""
-         );
+         return sprites.front_shiny || sprites.front_default || "";
       }
-
-      return pokemonData.pokemon.sprites.front_default || "";
+      return sprites.front_default || "";
    }, [pokemonData.pokemon, isShiny]);
 
    const hasShinySprite = useMemo(() => {
-      return !!pokemonData.pokemon?.sprites.front_shiny;
+      if (!pokemonData.pokemon) return false;
+      return Boolean(pokemonData.pokemon.sprites.front_shiny);
    }, [pokemonData.pokemon]);
-
-   const toggleShiny = () => {
-      if (hasShinySprite) {
-         setIsShiny(!isShiny);
-      }
-   };
-
-   const refetch = () => {
-      fetchPokemonData();
-   };
 
    return {
       pokemonData,
@@ -100,8 +118,8 @@ export const usePokemonDetail = (pokemonId: string): UsePokemonDetailReturn => {
    };
 };
 
-// Type colors for Pokemon types
-const typeColors: Record<string, string> = {
+// Type colors mapping
+const TYPE_COLORS: Record<string, string> = {
    normal: "#A8A878",
    fire: "#F08030",
    water: "#6890F0",
@@ -123,16 +141,9 @@ const typeColors: Record<string, string> = {
 };
 
 export const usePokemonTypeColors = () => {
-   const getTypeColor = (type: string): string => {
-      return typeColors[type.toLowerCase()] || "#68A090";
-   };
+   const getTypeColor = useCallback((type: string): string => {
+      return TYPE_COLORS[type.toLowerCase()] || "#68A090";
+   }, []);
 
-   const getTypeGradient = (types: string[]): string[] => {
-      return types.map((type) => getTypeColor(type));
-   };
-
-   return {
-      getTypeColor,
-      getTypeGradient,
-   };
+   return { getTypeColor };
 };

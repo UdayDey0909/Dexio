@@ -24,7 +24,7 @@ const { width: screenWidth } = Dimensions.get("window");
 const PokemonDetailScreen: React.FC = () => {
    const { id } = useLocalSearchParams<{ id: string }>();
    const router = useRouter();
-   const [activeTab, setActiveTab] = useState<"About">("About");
+   const [useMetric, setUseMetric] = useState(true);
 
    const {
       pokemonData,
@@ -83,7 +83,7 @@ const PokemonDetailScreen: React.FC = () => {
 
    const { pokemon, species } = pokemonData;
 
-   if (!pokemon || !species) {
+   if (!pokemon) {
       return (
          <SafeAreaView style={[styles.container, { backgroundColor }]}>
             <StatusBar
@@ -102,6 +102,49 @@ const PokemonDetailScreen: React.FC = () => {
          </SafeAreaView>
       );
    }
+
+   // Helper functions
+   const formatHeight = (height: number) => {
+      if (useMetric) {
+         return `${(height / 10).toFixed(1)} m`;
+      } else {
+         const totalInches = Math.round(height * 3.937);
+         const feet = Math.floor(totalInches / 12);
+         const inches = totalInches % 12;
+         return `${feet}'${inches}"`;
+      }
+   };
+
+   const formatWeight = (weight: number) => {
+      if (useMetric) {
+         return `${(weight / 10).toFixed(1)} kg`;
+      } else {
+         return `${(weight * 0.220462).toFixed(1)} lbs`;
+      }
+   };
+
+   const getDescription = () => {
+      if (species?.flavor_text_entries) {
+         const englishEntry = species.flavor_text_entries.find(
+            (entry: any) => entry.language.name === "en"
+         );
+         return (
+            englishEntry?.flavor_text.replace(/[\f\n\r]+/g, " ") ||
+            "No description available"
+         );
+      }
+      return "No description available";
+   };
+
+   const getGenus = () => {
+      if (species?.genera) {
+         const englishGenus = species.genera.find(
+            (genus: any) => genus.language.name === "en"
+         );
+         return englishGenus?.genus || "Unknown Species";
+      }
+      return "Unknown Species";
+   };
 
    return (
       <SafeAreaView style={[styles.container, { backgroundColor }]}>
@@ -166,187 +209,106 @@ const PokemonDetailScreen: React.FC = () => {
 
          {/* Species Info */}
          <View style={styles.speciesContainer}>
-            <Text style={styles.speciesText}>
-               {species.genera.find((g) => g.language.name === "en")?.genus ||
-                  "Unknown Species"}
-            </Text>
+            <Text style={styles.speciesText}>{getGenus()}</Text>
          </View>
 
          {/* Content Card */}
          <View style={styles.contentCard}>
-            {/* Tab Navigation */}
-            <View style={styles.tabContainer}>
-               <TouchableOpacity
-                  style={[styles.tab, styles.activeTab]}
-                  onPress={() => setActiveTab("About")}
-               >
-                  <Text style={[styles.tabText, styles.activeTabText]}>
-                     About
-                  </Text>
-               </TouchableOpacity>
-            </View>
-
-            {/* Tab Content */}
             <ScrollView
-               style={styles.tabContent}
+               style={styles.scrollContent}
                showsVerticalScrollIndicator={false}
             >
-               <PokemonAbout pokemon={pokemon} species={species} />
+               {/* Description */}
+               <View style={styles.section}>
+                  <Text style={styles.sectionTitle}>Description</Text>
+                  <Text style={styles.descriptionText}>{getDescription()}</Text>
+               </View>
+
+               {/* Physical Attributes */}
+               <View style={styles.section}>
+                  <View style={styles.sectionHeader}>
+                     <Text style={styles.sectionTitle}>
+                        Physical Attributes
+                     </Text>
+                     <TouchableOpacity
+                        style={styles.unitToggle}
+                        onPress={() => setUseMetric(!useMetric)}
+                     >
+                        <Text style={styles.unitToggleText}>
+                           {useMetric ? "Metric" : "Imperial"}
+                        </Text>
+                     </TouchableOpacity>
+                  </View>
+                  <View style={styles.attributeGrid}>
+                     <View style={styles.attributeItem}>
+                        <Text style={styles.attributeLabel}>Height</Text>
+                        <Text style={styles.attributeValue}>
+                           {formatHeight(pokemon.height)}
+                        </Text>
+                     </View>
+                     <View style={styles.attributeItem}>
+                        <Text style={styles.attributeLabel}>Weight</Text>
+                        <Text style={styles.attributeValue}>
+                           {formatWeight(pokemon.weight)}
+                        </Text>
+                     </View>
+                     <View style={styles.attributeItem}>
+                        <Text style={styles.attributeLabel}>
+                           Base Experience
+                        </Text>
+                        <Text style={styles.attributeValue}>
+                           {pokemon.base_experience || "N/A"}
+                        </Text>
+                     </View>
+                     <View style={styles.attributeItem}>
+                        <Text style={styles.attributeLabel}>Order</Text>
+                        <Text style={styles.attributeValue}>
+                           {pokemon.order || "N/A"}
+                        </Text>
+                     </View>
+                  </View>
+               </View>
+
+               {/* Abilities */}
+               <View style={styles.section}>
+                  <Text style={styles.sectionTitle}>Abilities</Text>
+                  {pokemon.abilities.map((ability: any, index: number) => (
+                     <View key={index} style={styles.abilityItem}>
+                        <Text style={styles.abilityName}>
+                           {ability.ability.name}
+                        </Text>
+                        <Text style={styles.abilityDescription}>
+                           {ability.is_hidden
+                              ? "Hidden Ability"
+                              : "Normal Ability"}
+                        </Text>
+                     </View>
+                  ))}
+               </View>
+
+               {/* Base Stats */}
+               <View style={styles.section}>
+                  <Text style={styles.sectionTitle}>Base Stats</Text>
+                  {pokemon.stats.map((stat: any, index: number) => (
+                     <View key={index} style={styles.statItem}>
+                        <Text style={styles.statName}>{stat.stat.name}</Text>
+                        <View style={styles.statBarContainer}>
+                           <View
+                              style={[
+                                 styles.statBar,
+                                 { width: `${(stat.base_stat / 255) * 100}%` },
+                              ]}
+                           />
+                           <Text style={styles.statValue}>
+                              {stat.base_stat}
+                           </Text>
+                        </View>
+                     </View>
+                  ))}
+               </View>
             </ScrollView>
          </View>
       </SafeAreaView>
-   );
-};
-
-// About Tab Component
-const PokemonAbout: React.FC<{
-   pokemon: any;
-   species: any;
-}> = ({ pokemon, species }) => {
-   const [showAllDescriptions, setShowAllDescriptions] = useState(false);
-   const [useMetric, setUseMetric] = useState(true);
-
-   const descriptions = useMemo(() => {
-      return species.flavor_text_entries
-         .filter((entry: any) => entry.language.name === "en")
-         .map((entry: any) => ({
-            text: entry.flavor_text.replace(/[\f\n\r]+/g, " "),
-            version: entry.version?.name || "unknown",
-         }))
-         .slice(0, showAllDescriptions ? undefined : 3);
-   }, [species.flavor_text_entries, showAllDescriptions]);
-
-   const formatHeight = (height: number) => {
-      if (useMetric) {
-         return `${(height / 10).toFixed(1)} m`;
-      } else {
-         const totalInches = Math.round(height * 3.937);
-         const feet = Math.floor(totalInches / 12);
-         const inches = totalInches % 12;
-         return `${feet}'${inches}"`;
-      }
-   };
-
-   const formatWeight = (weight: number) => {
-      if (useMetric) {
-         return `${(weight / 10).toFixed(1)} kg`;
-      } else {
-         return `${(weight * 0.220462).toFixed(1)} lbs`;
-      }
-   };
-
-   return (
-      <View style={styles.aboutContainer}>
-         {/* Descriptions */}
-         <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Description</Text>
-            {descriptions.map((desc: any, index: number) => (
-               <View key={index} style={styles.descriptionItem}>
-                  <Text style={styles.descriptionText}>{desc.text}</Text>
-                  <Text style={styles.descriptionVersion}>
-                     — {desc.version}
-                  </Text>
-               </View>
-            ))}
-            {species.flavor_text_entries.filter(
-               (entry: any) => entry.language.name === "en"
-            ).length > 3 && (
-               <TouchableOpacity
-                  style={styles.showMoreButton}
-                  onPress={() => setShowAllDescriptions(!showAllDescriptions)}
-               >
-                  <Text style={styles.showMoreText}>
-                     {showAllDescriptions ? "Show Less" : "Show More"}
-                  </Text>
-               </TouchableOpacity>
-            )}
-         </View>
-
-         {/* Physical Attributes */}
-         <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-               <Text style={styles.sectionTitle}>Physical Attributes</Text>
-               <TouchableOpacity
-                  style={styles.unitToggle}
-                  onPress={() => setUseMetric(!useMetric)}
-               >
-                  <Text style={styles.unitToggleText}>
-                     {useMetric ? "Metric" : "Imperial"}
-                  </Text>
-               </TouchableOpacity>
-            </View>
-            <View style={styles.attributeGrid}>
-               <View style={styles.attributeItem}>
-                  <Text style={styles.attributeLabel}>Height</Text>
-                  <Text style={styles.attributeValue}>
-                     {formatHeight(pokemon.height)}
-                  </Text>
-               </View>
-               <View style={styles.attributeItem}>
-                  <Text style={styles.attributeLabel}>Weight</Text>
-                  <Text style={styles.attributeValue}>
-                     {formatWeight(pokemon.weight)}
-                  </Text>
-               </View>
-               <View style={styles.attributeItem}>
-                  <Text style={styles.attributeLabel}>Base Experience</Text>
-                  <Text style={styles.attributeValue}>
-                     {pokemon.base_experience}
-                  </Text>
-               </View>
-               <View style={styles.attributeItem}>
-                  <Text style={styles.attributeLabel}>Color</Text>
-                  <Text style={styles.attributeValue}>
-                     {species.color?.name || "Unknown"}
-                  </Text>
-               </View>
-            </View>
-         </View>
-
-         {/* Abilities */}
-         <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Abilities</Text>
-            {pokemon.abilities.map((ability: any, index: number) => (
-               <View key={index} style={styles.abilityItem}>
-                  <Text style={styles.abilityName}>{ability.ability.name}</Text>
-                  <Text style={styles.abilityDescription}>
-                     {ability.is_hidden ? "Hidden Ability" : "Normal Ability"}
-                  </Text>
-               </View>
-            ))}
-         </View>
-
-         {/* Habitat & Growth */}
-         <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Habitat & Growth</Text>
-            <View style={styles.attributeGrid}>
-               <View style={styles.attributeItem}>
-                  <Text style={styles.attributeLabel}>Habitat</Text>
-                  <Text style={styles.attributeValue}>
-                     {species.habitat?.name || "Unknown"}
-                  </Text>
-               </View>
-               <View style={styles.attributeItem}>
-                  <Text style={styles.attributeLabel}>Growth Rate</Text>
-                  <Text style={styles.attributeValue}>
-                     {species.growth_rate?.name || "Unknown"}
-                  </Text>
-               </View>
-               <View style={styles.attributeItem}>
-                  <Text style={styles.attributeLabel}>Shape</Text>
-                  <Text style={styles.attributeValue}>
-                     {species.shape?.name || "Unknown"}
-                  </Text>
-               </View>
-               <View style={styles.attributeItem}>
-                  <Text style={styles.attributeLabel}>Generation</Text>
-                  <Text style={styles.attributeValue}>
-                     {species.generation?.name || "Unknown"}
-                  </Text>
-               </View>
-            </View>
-         </View>
-      </View>
    );
 };
 
@@ -456,35 +418,9 @@ const styles = StyleSheet.create({
       borderTopRightRadius: 30,
       paddingTop: 20,
    },
-   tabContainer: {
-      flexDirection: "row",
-      justifyContent: "center",
-      paddingHorizontal: 20,
-      marginBottom: 20,
-   },
-   tab: {
-      paddingHorizontal: 20,
-      paddingVertical: 10,
-      borderRadius: 20,
-      marginHorizontal: 5,
-   },
-   activeTab: {
-      backgroundColor: "#f0f0f0",
-   },
-   tabText: {
-      fontSize: 16,
-      color: "#666",
-   },
-   activeTabText: {
-      color: "#333",
-      fontWeight: "bold",
-   },
-   tabContent: {
+   scrollContent: {
       flex: 1,
       paddingHorizontal: 20,
-   },
-   aboutContainer: {
-      paddingBottom: 20,
    },
    section: {
       marginBottom: 25,
@@ -501,28 +437,10 @@ const styles = StyleSheet.create({
       color: "#333",
       marginBottom: 15,
    },
-   descriptionItem: {
-      marginBottom: 15,
-   },
    descriptionText: {
       fontSize: 14,
       color: "#666",
       lineHeight: 20,
-      marginBottom: 5,
-   },
-   descriptionVersion: {
-      fontSize: 12,
-      color: "#999",
-      fontStyle: "italic",
-   },
-   showMoreButton: {
-      alignSelf: "flex-start",
-      marginTop: 10,
-   },
-   showMoreText: {
-      color: "#007AFF",
-      fontSize: 14,
-      fontWeight: "bold",
    },
    unitToggle: {
       backgroundColor: "#f0f0f0",
@@ -574,6 +492,39 @@ const styles = StyleSheet.create({
    abilityDescription: {
       fontSize: 14,
       color: "#666",
+   },
+   statItem: {
+      backgroundColor: "#f8f8f8",
+      padding: 15,
+      borderRadius: 10,
+      marginBottom: 10,
+   },
+   statName: {
+      fontSize: 14,
+      fontWeight: "bold",
+      color: "#333",
+      textTransform: "capitalize",
+      marginBottom: 8,
+   },
+   statBarContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: "#e0e0e0",
+      borderRadius: 10,
+      height: 20,
+      overflow: "hidden",
+   },
+   statBar: {
+      height: "100%",
+      backgroundColor: "#4CAF50",
+      borderRadius: 10,
+   },
+   statValue: {
+      position: "absolute",
+      right: 10,
+      fontSize: 12,
+      fontWeight: "bold",
+      color: "#333",
    },
 });
 

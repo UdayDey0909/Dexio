@@ -1,9 +1,11 @@
+// src/Screens/PokemonList.tsx
 import React, { useCallback } from "react";
 import PokemonGrid from "@/Features/Home/Components/PokemonGrid";
 import AppHeader from "@/Features/Home/Components/Common/AppHeader";
 import { lightThemeColors } from "@/Theme/Core/Variants";
 import { PokemonCardData } from "@/Features/Home/Types";
 import { usePokemonList } from "@/Features/Home/Hooks/usePokemonList";
+import { useRouter } from "expo-router";
 import {
    StyleSheet,
    SafeAreaView,
@@ -13,6 +15,7 @@ import {
 } from "react-native";
 
 export const PokemonList: React.FC = () => {
+   const router = useRouter();
    const {
       pokemonData,
       loading,
@@ -24,24 +27,28 @@ export const PokemonList: React.FC = () => {
       loadMore,
    } = usePokemonList(20, 0);
 
-   // Memoized Pokemon press handler
-   const handlePokemonPress = useCallback((pokemon: PokemonCardData) => {
-      const typeText =
-         pokemon.types.length > 1
-            ? `Types: ${pokemon.types.join(", ")}`
-            : `Type: ${pokemon.types[0]}`;
+   // Updated Pokemon press handler with navigation
+   const handlePokemonPress = useCallback(
+      (pokemon: PokemonCardData) => {
+         try {
+            // Navigate to Pokemon detail screen
+            router.push(`/Pokemon/${pokemon.id}`);
+         } catch (error) {
+            console.error("Navigation error:", error);
 
-      Alert.alert(`${pokemon.name} #${pokemon.id}`, typeText, [
-         { text: "OK", style: "default" },
-         {
-            text: "Details",
-            onPress: () => {
-               // TODO: Navigate to Pokemon details screen
-               console.log(`Navigate to details for ${pokemon.name}`);
-            },
-         },
-      ]);
-   }, []);
+            // Fallback to Alert if navigation fails
+            const typeText =
+               pokemon.types.length > 1
+                  ? `Types: ${pokemon.types.join(", ")}`
+                  : `Type: ${pokemon.types[0]}`;
+
+            Alert.alert(`${pokemon.name} #${pokemon.id}`, typeText, [
+               { text: "OK", style: "default" },
+            ]);
+         }
+      },
+      [router]
+   );
 
    return (
       <SafeAreaView style={styles.container}>
