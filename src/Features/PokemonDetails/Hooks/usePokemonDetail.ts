@@ -3,7 +3,17 @@ import { useState, useEffect, useCallback } from "react";
 import { PokemonData } from "@/Services/API/Pokemon/PokemonData";
 import { PokemonStats } from "@/Services/API/Pokemon/PokemonStats";
 import { EvolutionService } from "@/Services/API/Evolution";
-import type { Pokemon, PokemonSpecies, EvolutionChain } from "pokenode-ts";
+import { TypeService } from "@/Services/API/Type";
+import { AbilityService } from "@/Services/API/Ability";
+import { MoveService } from "@/Services/API/Move";
+import type {
+   Pokemon,
+   PokemonSpecies,
+   EvolutionChain,
+   Type,
+   Ability,
+   Move,
+} from "pokenode-ts";
 
 export interface PokemonDetailData {
    pokemon: Pokemon | null;
@@ -11,6 +21,9 @@ export interface PokemonDetailData {
    evolutionChain: EvolutionChain | null;
    stats: any | null;
    moves: any[] | null;
+   types: Type[] | null;
+   abilities: Ability[] | null;
+   typeEffectiveness: any | null;
 }
 
 export interface UsePokemonDetailReturn {
@@ -18,6 +31,10 @@ export interface UsePokemonDetailReturn {
    loading: boolean;
    error: string | null;
    refetch: () => void;
+   isShiny: boolean;
+   toggleShiny: () => void;
+   currentSprite: string;
+   hasShinySprite: boolean;
 }
 
 export const usePokemonDetail = (
@@ -29,13 +46,20 @@ export const usePokemonDetail = (
       evolutionChain: null,
       stats: null,
       moves: null,
+      types: null,
+      abilities: null,
+      typeEffectiveness: null,
    });
    const [loading, setLoading] = useState(true);
    const [error, setError] = useState<string | null>(null);
+   const [isShiny, setIsShiny] = useState(false);
 
-   const pokemonService = new PokemonData();
-   const pokemonStatsService = new PokemonStats();
-   const evolutionService = new EvolutionService();
+   const pokemonService = useMemo(() => new PokemonData(), []);
+   const pokemonStatsService = useMemo(() => new PokemonStats(), []);
+   const evolutionService = useMemo(() => new EvolutionService(), []);
+   const typeService = useMemo(() => new TypeService(), []);
+   const abilityService = useMemo(() => new AbilityService(), []);
+   const moveService = useMemo(() => new MoveService(), []);
 
    const fetchPokemonData = useCallback(async () => {
       try {
@@ -53,6 +77,27 @@ export const usePokemonDetail = (
             pokemonStatsService.getPokemonStats(pokemon.name),
             pokemonStatsService.getPokemonMoves(pokemon.name),
          ]);
+
+         // Fetch types data
+         const typeNames = pokemon.types.map((t) => t.type.name);
+         const types = await typeService.batchGetTypes(typeNames);
+
+         // Fetch abilities data
+         const abilityNames = pokemon.abilities.map((a) => a.ability.name);
+         const abilities = (await abilityService.batchGetAbilities)
+            ? await abilityService.batchGetAbilities(abilityNames)
+            : await Promise.all(
+                 abilityNames.map((name) => abilityService.getAbility(name))
+              );
+
+         // Calculate type effectiveness
+         let typeEffectiveness = null;
+         if (types.length > 0) {
+            const effectiveness = await Promise.all(
+               types.map((type) => typeService.getTypeEffectiveness(type.name))
+            );
+            typeEffectiveness = effectiveness;
+         }
 
          // Fetch evolution chain if available
          let evolutionChain: EvolutionChain | null = null;
@@ -77,6 +122,9 @@ export const usePokemonDetail = (
             evolutionChain,
             stats,
             moves,
+            types,
+            abilities,
+            typeEffectiveness,
          });
       } catch (err) {
          setError(
@@ -85,7 +133,14 @@ export const usePokemonDetail = (
       } finally {
          setLoading(false);
       }
-   }, [pokemonId]);
+   }, [
+      pokemonId,
+      pokemonService,
+      pokemonStatsService,
+      evolutionService,
+      typeService,
+      abilityService,
+   ]);
 
    useEffect(() => {
       fetchPokemonData();
@@ -95,11 +150,32 @@ export const usePokemonDetail = (
       fetchPokemonData();
    }, [fetchPokemonData]);
 
+   const toggleShiny = useCallback(() => {
+      setIsShiny((prev) => !prev);
+   }, []);
+
+   const currentSprite = useMemo(() => {
+      if (!pokemonData.pokemon) return "";
+
+      return isShiny
+         ? pokemonData.pokemon.sprites.front_shiny ||
+              pokemonData.pokemon.sprites.front_default
+         : pokemonData.pokemon.sprites.front_default;
+   }, [pokemonData.pokemon, isShiny]);
+
+   const hasShinySprite = useMemo(() => {
+      return pokemonData.pokemon?.sprites.front_shiny != null;
+   }, [pokemonData.pokemon]);
+
    return {
       pokemonData,
       loading,
       error,
       refetch,
+      isShiny,
+      toggleShiny,
+      currentSprite: currentSprite || "",
+      hasShinySprite,
    };
 };
 
@@ -109,28 +185,53 @@ const extractIdFromUrl = (url: string): number | null => {
    return match ? parseInt(match[1], 10) : null;
 };
 
-// Hook for Pokemon sprites
-export const usePokemonSprites = (pokemon: Pokemon | null) => {
-   const [currentSprite, setCurrentSprite] = useState<string>("");
-   const [isShiny, setIsShiny] = useState(false);
+// Additional hook for Pokemon type colors
+export const usePokemonTypeColors = () => {
+   const typeColors: Record<string, string> = useMemo(
+      () => ({
+         normal: "#A8A878",
+         fire: "#FA6555",
+         water: "#6890F0",
+         electric: "#F8D030",
+         grass: "#78C850",
+         ice: "#98D8D8",
+         fighting: "#C03028",
+         poison: "#A040A0",
+         ground: "#E0C068",
+         flying: "#A890F0",
+         psychic: "#F85888",
+         bug: "#A8B820",
+         rock: "#B8A038",
+         ghost: "#705898",
+         dragon: "#7038F8",
+         dark: "#705848",
+         steel: "#B8B8D0",
+         fairy: "#EE99AC",
+      }),
+      []
+   );
 
-   useEffect(() => {
-      if (pokemon) {
-         const sprite = isShiny
-            ? pokemon.sprites.front_shiny || pokemon.sprites.front_default
-            : pokemon.sprites.front_default;
-         setCurrentSprite(sprite || "");
-      }
-   }, [pokemon, isShiny]);
+   const getTypeColor = useCallback(
+      (type: string): string => {
+         return typeColors[type.toLowerCase()] || "#68A090";
+      },
+      [typeColors]
+   );
 
-   const toggleShiny = useCallback(() => {
-      setIsShiny((prev) => !prev);
-   }, []);
+   const getTypeGradient = useCallback(
+      (types: string[]): string[] => {
+         if (types.length === 1) {
+            const color = getTypeColor(types[0]);
+            return [color, color];
+         }
+         return types.map((type) => getTypeColor(type));
+      },
+      [getTypeColor]
+   );
 
    return {
-      currentSprite,
-      isShiny,
-      toggleShiny,
-      hasShinySprite: pokemon?.sprites.front_shiny != null,
+      getTypeColor,
+      getTypeGradient,
+      typeColors,
    };
 };
