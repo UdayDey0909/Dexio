@@ -1,4 +1,3 @@
-// src/Features/PokemonDetails/Hooks/usePokemonDetail.ts
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { PokemonData } from "@/Services/API/Pokemon/PokemonData";
 import { PokemonSpecies } from "@/Services/API/Pokemon/PokemonSpecies";
@@ -8,8 +7,23 @@ import type {
    PokemonSpecies as PokemonSpeciesType,
 } from "pokenode-ts";
 
+// Extended types to include shiny official artwork
+interface ExtendedOfficialArtwork {
+   front_default: string | null;
+   front_shiny: string | null;
+}
+
+interface ExtendedPokemon extends Pokemon {
+   sprites: Pokemon["sprites"] & {
+      other?: {
+         "official-artwork": ExtendedOfficialArtwork;
+         [key: string]: any;
+      };
+   };
+}
+
 interface PokemonDetailData {
-   pokemon: Pokemon | null;
+   pokemon: ExtendedPokemon | null;
    species: PokemonSpeciesType | null;
    stats: any | null;
 }
@@ -47,7 +61,9 @@ export const usePokemonDetail = (pokemonId: string): UsePokemonDetailReturn => {
 
       try {
          // Fetch Pokemon basic data
-         const pokemon = await pokemonDataService.getPokemon(pokemonId);
+         const pokemon = (await pokemonDataService.getPokemon(
+            pokemonId
+         )) as ExtendedPokemon;
 
          // Fetch Pokemon species data
          const species = await pokemonSpeciesService.getPokemonSpecies(
@@ -95,15 +111,33 @@ export const usePokemonDetail = (pokemonId: string): UsePokemonDetailReturn => {
       if (!pokemonData.pokemon) return "";
 
       const sprites = pokemonData.pokemon.sprites;
+
+      const officialArtwork = sprites.other?.[
+         "official-artwork"
+      ] as ExtendedOfficialArtwork;
+
       if (isShiny) {
-         return sprites.front_shiny || sprites.front_default || "";
+         return (
+            officialArtwork?.front_shiny ||
+            sprites.front_shiny ||
+            officialArtwork?.front_default ||
+            sprites.front_default ||
+            ""
+         );
+      } else {
+         return officialArtwork?.front_default || sprites.front_default || "";
       }
-      return sprites.front_default || "";
    }, [pokemonData.pokemon, isShiny]);
 
    const hasShinySprite = useMemo(() => {
       if (!pokemonData.pokemon) return false;
-      return Boolean(pokemonData.pokemon.sprites.front_shiny);
+
+      const sprites = pokemonData.pokemon.sprites;
+      const officialArtwork = sprites.other?.[
+         "official-artwork"
+      ] as ExtendedOfficialArtwork;
+
+      return Boolean(officialArtwork?.front_shiny || sprites.front_shiny);
    }, [pokemonData.pokemon]);
 
    return {
