@@ -32,7 +32,7 @@ export const PokemonList: React.FC = () => {
       (pokemon: PokemonCardData) => {
          try {
             // Navigate to Pokemon detail screen
-            router.push(`/Pokemon/${pokemon.id}`);
+            router.push(`/Pokemon/${pokemon.id}` as any);
          } catch (error) {
             console.error("Navigation error:", error);
 
