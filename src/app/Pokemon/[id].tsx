@@ -1,4 +1,4 @@
-// app/pokemon/[id].tsx
+// src/app/Pokemon/[id].tsx
 import React, { useState, useMemo } from "react";
 import {
    View,
@@ -11,20 +11,21 @@ import {
    SafeAreaView,
    StatusBar,
    Dimensions,
-   Alert,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { usePokemonDetail, usePokemonTypeColors } from "@/Features/PokemonDetails/Hooks/usePokemonDetail";
+import {
+   usePokemonDetail,
+   usePokemonTypeColors,
+} from "@/Features/PokemonDetails/Hooks/usePokemonDetail";
 import { Ionicons } from "@expo/vector-icons";
-import { lightThemeColors } from "@/Theme/Core/Variants";
 
-const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
+const { width: screenWidth } = Dimensions.get("window");
 
 const PokemonDetailScreen: React.FC = () => {
    const { id } = useLocalSearchParams<{ id: string }>();
    const router = useRouter();
-   const [activeTab, setActiveTab] = useState<"About" | "Stats" | "Evolution" | "Moves">("About");
-   
+   const [activeTab, setActiveTab] = useState<"About">("About");
+
    const {
       pokemonData,
       loading,
@@ -36,21 +37,25 @@ const PokemonDetailScreen: React.FC = () => {
       hasShinySprite,
    } = usePokemonDetail(id || "1");
 
-   const { getTypeColor, getTypeGradient } = usePokemonTypeColors();
+   const { getTypeColor } = usePokemonTypeColors();
 
    const backgroundColor = useMemo(() => {
-      if (!pokemonData.pokemon?.types || pokemonData.pokemon.types.length === 0) {
-         return lightThemeColors.background.primary;
+      if (
+         !pokemonData.pokemon?.types ||
+         pokemonData.pokemon.types.length === 0
+      ) {
+         return "#68A090";
       }
       return getTypeColor(pokemonData.pokemon.types[0].type.name);
    }, [pokemonData.pokemon?.types, getTypeColor]);
 
-   const tabs = ["About", "Stats", "Evolution", "Moves"] as const;
-
    if (loading) {
       return (
          <SafeAreaView style={[styles.container, { backgroundColor }]}>
-            <StatusBar backgroundColor={backgroundColor} barStyle="light-content" />
+            <StatusBar
+               backgroundColor={backgroundColor}
+               barStyle="light-content"
+            />
             <View style={styles.loadingContainer}>
                <ActivityIndicator size="large" color="#fff" />
                <Text style={styles.loadingText}>Loading Pokémon...</Text>
@@ -62,7 +67,10 @@ const PokemonDetailScreen: React.FC = () => {
    if (error) {
       return (
          <SafeAreaView style={[styles.container, { backgroundColor }]}>
-            <StatusBar backgroundColor={backgroundColor} barStyle="light-content" />
+            <StatusBar
+               backgroundColor={backgroundColor}
+               barStyle="light-content"
+            />
             <View style={styles.errorContainer}>
                <Text style={styles.errorText}>{error}</Text>
                <TouchableOpacity style={styles.retryButton} onPress={refetch}>
@@ -73,15 +81,21 @@ const PokemonDetailScreen: React.FC = () => {
       );
    }
 
-   const { pokemon, species, evolutionChain, stats, moves, types, abilities, typeEffectiveness } = pokemonData;
+   const { pokemon, species } = pokemonData;
 
    if (!pokemon || !species) {
       return (
          <SafeAreaView style={[styles.container, { backgroundColor }]}>
-            <StatusBar backgroundColor={backgroundColor} barStyle="light-content" />
+            <StatusBar
+               backgroundColor={backgroundColor}
+               barStyle="light-content"
+            />
             <View style={styles.errorContainer}>
                <Text style={styles.errorText}>Pokémon not found</Text>
-               <TouchableOpacity style={styles.retryButton} onPress={() => router.back()}>
+               <TouchableOpacity
+                  style={styles.retryButton}
+                  onPress={() => router.back()}
+               >
                   <Text style={styles.retryButtonText}>Go Back</Text>
                </TouchableOpacity>
             </View>
@@ -91,8 +105,11 @@ const PokemonDetailScreen: React.FC = () => {
 
    return (
       <SafeAreaView style={[styles.container, { backgroundColor }]}>
-         <StatusBar backgroundColor={backgroundColor} barStyle="light-content" />
-         
+         <StatusBar
+            backgroundColor={backgroundColor}
+            barStyle="light-content"
+         />
+
          {/* Header */}
          <View style={styles.header}>
             <TouchableOpacity
@@ -101,10 +118,12 @@ const PokemonDetailScreen: React.FC = () => {
             >
                <Ionicons name="arrow-back" size={24} color="#fff" />
             </TouchableOpacity>
-            
+
             <View style={styles.headerInfo}>
                <Text style={styles.pokemonName}>{pokemon.name}</Text>
-               <Text style={styles.pokemonId}>#{pokemon.id.toString().padStart(3, "0")}</Text>
+               <Text style={styles.pokemonId}>
+                  #{pokemon.id.toString().padStart(3, "0")}
+               </Text>
             </View>
 
             {hasShinySprite && (
@@ -112,10 +131,10 @@ const PokemonDetailScreen: React.FC = () => {
                   style={styles.shinyButton}
                   onPress={toggleShiny}
                >
-                  <Ionicons 
-                     name={isShiny ? "sparkles" : "sparkles-outline"} 
-                     size={24} 
-                     color="#fff" 
+                  <Ionicons
+                     name={isShiny ? "sparkles" : "sparkles-outline"}
+                     size={24}
+                     color="#fff"
                   />
                </TouchableOpacity>
             )}
@@ -148,7 +167,8 @@ const PokemonDetailScreen: React.FC = () => {
          {/* Species Info */}
          <View style={styles.speciesContainer}>
             <Text style={styles.speciesText}>
-               {species.genera.find(g => g.language.name === "en")?.genus || "Unknown Species"}
+               {species.genera.find((g) => g.language.name === "en")?.genus ||
+                  "Unknown Species"}
             </Text>
          </View>
 
@@ -156,49 +176,22 @@ const PokemonDetailScreen: React.FC = () => {
          <View style={styles.contentCard}>
             {/* Tab Navigation */}
             <View style={styles.tabContainer}>
-               {tabs.map((tab) => (
-                  <TouchableOpacity
-                     key={tab}
-                     style={[
-                        styles.tab,
-                        activeTab === tab && styles.activeTab,
-                     ]}
-                     onPress={() => setActiveTab(tab)}
-                  >
-                     <Text
-                        style={[
-                           styles.tabText,
-                           activeTab === tab && styles.activeTabText,
-                        ]}
-                     >
-                        {tab}
-                     </Text>
-                  </TouchableOpacity>
-               ))}
+               <TouchableOpacity
+                  style={[styles.tab, styles.activeTab]}
+                  onPress={() => setActiveTab("About")}
+               >
+                  <Text style={[styles.tabText, styles.activeTabText]}>
+                     About
+                  </Text>
+               </TouchableOpacity>
             </View>
 
             {/* Tab Content */}
-            <ScrollView style={styles.tabContent} showsVerticalScrollIndicator={false}>
-               {activeTab === "About" && (
-                  <PokemonAbout
-                     pokemon={pokemon}
-                     species={species}
-                     abilities={abilities}
-                     typeEffectiveness={typeEffectiveness}
-                  />
-               )}
-               {activeTab === "Stats" && (
-                  <PokemonStats pokemon={pokemon} stats={stats} />
-               )}
-               {activeTab === "Evolution" && (
-                  <PokemonEvolution 
-                     evolutionChain={evolutionChain}
-                     currentPokemon={pokemon}
-                  />
-               )}
-               {activeTab === "Moves" && (
-                  <PokemonMoves moves={moves} />
-               )}
+            <ScrollView
+               style={styles.tabContent}
+               showsVerticalScrollIndicator={false}
+            >
+               <PokemonAbout pokemon={pokemon} species={species} />
             </ScrollView>
          </View>
       </SafeAreaView>
@@ -209,9 +202,7 @@ const PokemonDetailScreen: React.FC = () => {
 const PokemonAbout: React.FC<{
    pokemon: any;
    species: any;
-   abilities: any[] | null;
-   typeEffectiveness: any;
-}> = ({ pokemon, species, abilities, typeEffectiveness }) => {
+}> = ({ pokemon, species }) => {
    const [showAllDescriptions, setShowAllDescriptions] = useState(false);
    const [useMetric, setUseMetric] = useState(true);
 
@@ -252,10 +243,14 @@ const PokemonAbout: React.FC<{
             {descriptions.map((desc: any, index: number) => (
                <View key={index} style={styles.descriptionItem}>
                   <Text style={styles.descriptionText}>{desc.text}</Text>
-                  <Text style={styles.descriptionVersion}>— {desc.version}</Text>
+                  <Text style={styles.descriptionVersion}>
+                     — {desc.version}
+                  </Text>
                </View>
             ))}
-            {species.flavor_text_entries.length > 3 && (
+            {species.flavor_text_entries.filter(
+               (entry: any) => entry.language.name === "en"
+            ).length > 3 && (
                <TouchableOpacity
                   style={styles.showMoreButton}
                   onPress={() => setShowAllDescriptions(!showAllDescriptions)}
@@ -283,37 +278,43 @@ const PokemonAbout: React.FC<{
             <View style={styles.attributeGrid}>
                <View style={styles.attributeItem}>
                   <Text style={styles.attributeLabel}>Height</Text>
-                  <Text style={styles.attributeValue}>{formatHeight(pokemon.height)}</Text>
+                  <Text style={styles.attributeValue}>
+                     {formatHeight(pokemon.height)}
+                  </Text>
                </View>
                <View style={styles.attributeItem}>
                   <Text style={styles.attributeLabel}>Weight</Text>
-                  <Text style={styles.attributeValue}>{formatWeight(pokemon.weight)}</Text>
+                  <Text style={styles.attributeValue}>
+                     {formatWeight(pokemon.weight)}
+                  </Text>
                </View>
                <View style={styles.attributeItem}>
                   <Text style={styles.attributeLabel}>Base Experience</Text>
-                  <Text style={styles.attributeValue}>{pokemon.base_experience}</Text>
+                  <Text style={styles.attributeValue}>
+                     {pokemon.base_experience}
+                  </Text>
                </View>
                <View style={styles.attributeItem}>
                   <Text style={styles.attributeLabel}>Color</Text>
-                  <Text style={styles.attributeValue}>{species.color?.name || "Unknown"}</Text>
+                  <Text style={styles.attributeValue}>
+                     {species.color?.name || "Unknown"}
+                  </Text>
                </View>
             </View>
          </View>
 
          {/* Abilities */}
-         {abilities && abilities.length > 0 && (
-            <View style={styles.section}>
-               <Text style={styles.sectionTitle}>Abilities</Text>
-               {abilities.map((ability: any, index: number) => (
-                  <View key={index} style={styles.abilityItem}>
-                     <Text style={styles.abilityName}>{ability.name}</Text>
-                     <Text style={styles.abilityDescription}>
-                        {ability.effect_entries?.find((e: any) => e.language.name === "en")?.short_effect || "No description available"}
-                     </Text>
-                  </View>
-               ))}
-            </View>
-         )}
+         <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Abilities</Text>
+            {pokemon.abilities.map((ability: any, index: number) => (
+               <View key={index} style={styles.abilityItem}>
+                  <Text style={styles.abilityName}>{ability.ability.name}</Text>
+                  <Text style={styles.abilityDescription}>
+                     {ability.is_hidden ? "Hidden Ability" : "Normal Ability"}
+                  </Text>
+               </View>
+            ))}
+         </View>
 
          {/* Habitat & Growth */}
          <View style={styles.section}>
@@ -321,194 +322,30 @@ const PokemonAbout: React.FC<{
             <View style={styles.attributeGrid}>
                <View style={styles.attributeItem}>
                   <Text style={styles.attributeLabel}>Habitat</Text>
-                  <Text style={styles.attributeValue}>{species.habitat?.name || "Unknown"}</Text>
+                  <Text style={styles.attributeValue}>
+                     {species.habitat?.name || "Unknown"}
+                  </Text>
                </View>
                <View style={styles.attributeItem}>
                   <Text style={styles.attributeLabel}>Growth Rate</Text>
-                  <Text style={styles.attributeValue}>{species.growth_rate?.name || "Unknown"}</Text>
+                  <Text style={styles.attributeValue}>
+                     {species.growth_rate?.name || "Unknown"}
+                  </Text>
                </View>
                <View style={styles.attributeItem}>
                   <Text style={styles.attributeLabel}>Shape</Text>
-                  <Text style={styles.attributeValue}>{species.shape?.name || "Unknown"}</Text>
+                  <Text style={styles.attributeValue}>
+                     {species.shape?.name || "Unknown"}
+                  </Text>
                </View>
                <View style={styles.attributeItem}>
                   <Text style={styles.attributeLabel}>Generation</Text>
-                  <Text style={styles.attributeValue}>{species.generation?.name || "Unknown"}</Text>
+                  <Text style={styles.attributeValue}>
+                     {species.generation?.name || "Unknown"}
+                  </Text>
                </View>
             </View>
          </View>
-      </View>
-   );
-};
-
-// Stats Tab Component
-const PokemonStats: React.FC<{
-   pokemon: any;
-   stats: any;
-}> = ({ pokemon, stats }) => {
-   const getStatColor = (value: number) => {
-      if (value >= 90) return "#4CAF50";
-      if (value >= 70) return "#FF9800";
-      if (value >= 50) return "#FFC107";
-      return "#F44336";
-   };
-
-   const getStatName = (name: string) => {
-      const nameMap: Record<string, string> = {
-         "hp": "HP",
-         "attack": "Attack",
-         "defense": "Defense",
-         "special-attack": "Sp. Attack",
-         "special-defense": "Sp. Defense",
-         "speed": "Speed",
-      };
-      return nameMap[name] || name;
-   };
-
-   return (
-      <View style={styles.statsContainer}>
-         {/* Base Stats */}
-         <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Base Stats</Text>
-            {pokemon.stats.map((stat: any, index: number) => (
-               <View key={index} style={styles.statRow}>
-                  <View style={styles.statInfo}>
-                     <Text style={styles.statName}>{getStatName(stat.stat.name)}</Text>
-                     <Text style={styles.statValue}>{stat.base_stat}</Text>
-                  </View>
-                  <View style={styles.statBarContainer}>
-                     <View
-                        style={[
-                           styles.statBar,
-                           {
-                              width: `${(stat.base_stat / 255) * 100}%`,
-                              backgroundColor: getStatColor(stat.base_stat),
-                           },
-                        ]}
-                     />
-                  </View>
-               </View>
-            ))}
-         </View>
-
-         {/* Total Stats */}
-         <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Total Stats</Text>
-            <View style={styles.totalStatsContainer}>
-               <Text style={styles.totalStatsValue}>{stats?.totalStats || 0}</Text>
-               <Text style={styles.totalStatsLabel}>Total</Text>
-            </View>
-         </View>
-      </View>
-   );
-};
-
-// Evolution Tab Component
-const PokemonEvolution: React.FC<{
-   evolutionChain: any;
-   currentPokemon: any;
-}> = ({ evolutionChain, currentPokemon }) => {
-   if (!evolutionChain) {
-      return (
-         <View style={styles.evolutionContainer}>
-            <Text style={styles.noEvolutionText}>No evolution data available</Text>
-         </View>
-      );
-   }
-
-   const parseEvolutionChain = (chain: any): any[] => {
-      const evolutions = [];
-      
-      const addEvolution = (evolution: any) => {
-         evolutions.push({
-            name: evolution.species.name,
-            id: evolution.species.url.split("/").slice(-2, -1)[0],
-            trigger: evolution.evolution_details[0]?.trigger?.name || null,
-            minLevel: evolution.evolution_details[0]?.min_level || null,
-         });
-         
-         if (evolution.evolves_to && evolution.evolves_to.length > 0) {
-            evolution.evolves_to.forEach(addEvolution);
-         }
-      };
-
-      addEvolution(chain.chain);
-      return evolutions;
-   };
-
-   const evolutions = parseEvolutionChain(evolutionChain);
-
-   return (
-      <View style={styles.evolutionContainer}>
-         <Text style={styles.sectionTitle}>Evolution Chain</Text>
-         <View style={styles.evolutionChainContainer}>
-            {evolutions.map((evolution, index) => (
-               <View key={index} style={styles.evolutionStage}>
-                  <TouchableOpacity
-                     style={[
-                        styles.evolutionCard,
-                        currentPokemon.name === evolution.name && styles.currentEvolution,
-                     ]}
-                     onPress={() => {
-                        if (evolution.name !== currentPokemon.name) {
-                           Alert.alert(
-                              "Navigate to Evolution",
-                              `Go to ${evolution.name}?`,
-                              [
-                                 { text: "Cancel", style: "cancel" },
-                                 { text: "Go", onPress: () => console.log(`Navigate to ${evolution.name}`) },
-                              ]
-                           );
-                        }
-                     }}
-                  >
-                     <Text style={styles.evolutionName}>{evolution.name}</Text>
-                     <Text style={styles.evolutionId}>#{evolution.id.padStart(3, "0")}</Text>
-                     {evolution.trigger && (
-                        <Text style={styles.evolutionTrigger}>
-                           {evolution.trigger}
-                           {evolution.minLevel && ` (Lv. ${evolution.minLevel})`}
-                        </Text>
-                     )}
-                  </TouchableOpacity>
-                  {index < evolutions.length - 1 && (
-                     <Ionicons name="chevron-down" size={24} color="#666" />
-                  )}
-               </View>
-            ))}
-         </View>
-      </View>
-   );
-};
-
-// Moves Tab Component
-const PokemonMoves: React.FC<{
-   moves: any[] | null;
-}> = ({ moves }) => {
-   if (!moves || moves.length === 0) {
-      return (
-         <View style={styles.movesContainer}>
-            <Text style={styles.noMovesText}>No moves data available</Text>
-         </View>
-      );
-   }
-
-   return (
-      <View style={styles.movesContainer}>
-         <Text style={styles.sectionTitle}>Moves</Text>
-         {moves.map((move, index) => (
-            <View key={index} style={styles.moveItem}>
-               <Text style={styles.moveName}>{move.name}</Text>
-               <View style={styles.moveDetails}>
-                  {move.learnMethod.map((method: any, methodIndex: number) => (
-                     <Text key={methodIndex} style={styles.moveMethod}>
-                        {method.learnMethod}
-                        {method.levelLearnedAt > 0 && ` (Lv. ${method.levelLearnedAt})`}
-                     </Text>
-                  ))}
-               </View>
-            </View>
-         ))}
       </View>
    );
 };
@@ -621,5 +458,123 @@ const styles = StyleSheet.create({
    },
    tabContainer: {
       flexDirection: "row",
-      justifyContent: "space-around",
-      pad
+      justifyContent: "center",
+      paddingHorizontal: 20,
+      marginBottom: 20,
+   },
+   tab: {
+      paddingHorizontal: 20,
+      paddingVertical: 10,
+      borderRadius: 20,
+      marginHorizontal: 5,
+   },
+   activeTab: {
+      backgroundColor: "#f0f0f0",
+   },
+   tabText: {
+      fontSize: 16,
+      color: "#666",
+   },
+   activeTabText: {
+      color: "#333",
+      fontWeight: "bold",
+   },
+   tabContent: {
+      flex: 1,
+      paddingHorizontal: 20,
+   },
+   aboutContainer: {
+      paddingBottom: 20,
+   },
+   section: {
+      marginBottom: 25,
+   },
+   sectionHeader: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginBottom: 15,
+   },
+   sectionTitle: {
+      fontSize: 18,
+      fontWeight: "bold",
+      color: "#333",
+      marginBottom: 15,
+   },
+   descriptionItem: {
+      marginBottom: 15,
+   },
+   descriptionText: {
+      fontSize: 14,
+      color: "#666",
+      lineHeight: 20,
+      marginBottom: 5,
+   },
+   descriptionVersion: {
+      fontSize: 12,
+      color: "#999",
+      fontStyle: "italic",
+   },
+   showMoreButton: {
+      alignSelf: "flex-start",
+      marginTop: 10,
+   },
+   showMoreText: {
+      color: "#007AFF",
+      fontSize: 14,
+      fontWeight: "bold",
+   },
+   unitToggle: {
+      backgroundColor: "#f0f0f0",
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+      borderRadius: 15,
+   },
+   unitToggleText: {
+      fontSize: 12,
+      color: "#666",
+      fontWeight: "bold",
+   },
+   attributeGrid: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      justifyContent: "space-between",
+   },
+   attributeItem: {
+      width: "48%",
+      backgroundColor: "#f8f8f8",
+      padding: 15,
+      borderRadius: 10,
+      marginBottom: 10,
+   },
+   attributeLabel: {
+      fontSize: 12,
+      color: "#999",
+      marginBottom: 5,
+   },
+   attributeValue: {
+      fontSize: 16,
+      fontWeight: "bold",
+      color: "#333",
+      textTransform: "capitalize",
+   },
+   abilityItem: {
+      backgroundColor: "#f8f8f8",
+      padding: 15,
+      borderRadius: 10,
+      marginBottom: 10,
+   },
+   abilityName: {
+      fontSize: 16,
+      fontWeight: "bold",
+      color: "#333",
+      textTransform: "capitalize",
+      marginBottom: 5,
+   },
+   abilityDescription: {
+      fontSize: 14,
+      color: "#666",
+   },
+});
+
+export default PokemonDetailScreen;
