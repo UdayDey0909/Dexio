@@ -138,3 +138,33 @@ export const isLightColor = (hexColor: string): boolean => {
 export const getTextColorForBackground = (backgroundColor: string): string => {
    return isLightColor(backgroundColor) ? baseColors.black : baseColors.white;
 };
+
+/**
+ * Get Pokéball colors based on Pokémon types.
+ * Top half uses first type (lightened), bottom half uses second type (lightened) or same as top if no second type.
+ * Band is transparent.
+ *
+ * @param types - Array of Pokémon types
+ * @returns Object with Pokéball color properties
+ */
+export const getPokeballColors = (types: string[]) => {
+   if (types && types.length > 0) {
+      const primaryTypeColor = getTypeColor(types[0]);
+      const secondaryTypeColor =
+         types.length > 1 ? getTypeColor(types[1]) : primaryTypeColor;
+
+      return {
+         topColor: lightenColor(primaryTypeColor, 0.15),
+         bottomColor: lightenColor(secondaryTypeColor, 0.15),
+         middleColor: "rgba(255, 255, 255, 0.2)", // White with 0.2 opacity
+         bandColor: "transparent",
+      };
+   }
+
+   return {
+      topColor: "#cccccc",
+      bottomColor: "#cccccc",
+      middleColor: "rgba(255, 255, 255, 0.2)", // White with 0.2 opacity
+      bandColor: "transparent",
+   };
+};

@@ -4,7 +4,7 @@ import { View, RefreshControl } from "react-native";
 import PokemonGridFooter from "./PokemonGridFooter";
 import LoadingState from "../States/LoadingState";
 import PokemonGridItem from "./PokemonGridItem";
-import { lightThemeColors } from "@/Theme/Core/Variants";
+import { useTheme } from "@/Theme";
 import ErrorState from "../States/ErrorState";
 import EmptyState from "../States/EmptyState";
 import { PokemonCardData } from "../../Types";
@@ -38,6 +38,7 @@ const PokemonGrid: React.FC<PokemonGridProps> = ({
    onRefresh,
    onPokemonPress,
 }) => {
+   const { theme } = useTheme();
    const loadMoreCalledRef = useRef(false);
 
    /**
@@ -130,12 +131,12 @@ const PokemonGrid: React.FC<PokemonGridProps> = ({
          <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            colors={[lightThemeColors.accent]}
-            tintColor={lightThemeColors.accent}
-            progressBackgroundColor={lightThemeColors.background.secondary}
+            colors={[theme.accent]}
+            tintColor={theme.accent}
+            progressBackgroundColor={theme.background.secondary}
          />
       ),
-      [refreshing, onRefresh]
+      [refreshing, onRefresh, theme]
    );
 
    /**
@@ -164,7 +165,12 @@ const PokemonGrid: React.FC<PokemonGridProps> = ({
     * It uses FlashList to render the Pokémon cards in a grid layout.
     */
    return (
-      <View style={styles.container}>
+      <View
+         style={[
+            styles.container,
+            { backgroundColor: theme.background.primary },
+         ]}
+      >
          <FlashList
             data={pokemonData}
             renderItem={renderItem}

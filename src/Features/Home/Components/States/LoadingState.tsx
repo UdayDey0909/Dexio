@@ -29,7 +29,7 @@ const styles = StyleSheet.create({
       fontSize: 16,
       marginTop: 10,
       color: lightThemeColors.text.secondary,
-      fontFamily: Fonts.primaryRegular,
+      fontFamily: Fonts.primaryMedium, // Roboto-Medium
    },
 });
 

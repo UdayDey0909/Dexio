@@ -23,7 +23,7 @@ const styles = StyleSheet.create({
       fontSize: 16,
       textAlign: "center",
       marginTop: 40,
-      fontFamily: Fonts.primaryRegular,
+      fontFamily: Fonts.primaryMedium, // Roboto-Medium
    },
 });
 

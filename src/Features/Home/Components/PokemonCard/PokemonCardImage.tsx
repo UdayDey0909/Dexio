@@ -1,5 +1,5 @@
 import React, { memo, useState, useCallback, useMemo } from "react";
-import { getTypeColor, lightenColor } from "@/Theme/Utils/PokeBallBG";
+import { getPokeballColors } from "@/Theme/Utils/PokeBallBG";
 import { CARD_DIMENSIONS } from "../../Constants/Dimensions";
 import Pokeball from "@/Assets/SVG/PokeBall";
 import { View } from "react-native";
@@ -37,28 +37,11 @@ const PokemonCardImage: React.FC<PokemonCardImageProps> = ({
 
    /**
     * Memoized colors for the Pokeball based on the Pokémon's types.
-    * If types are provided, it uses the first type to determine the colors.
-    * If no types are provided, it defaults to neutral colors.
+    * Top half uses first type, bottom half uses second type (or same as top if no second type).
+    * Band is transparent.
     */
    const pokeballColors = useMemo(() => {
-      if (types && types.length > 0) {
-         const primaryTypeColor = getTypeColor(types[0]);
-         const lightenedColor = lightenColor(primaryTypeColor, 0.15);
-
-         return {
-            topColor: lightenedColor,
-            bottomColor: lightenedColor,
-            middleColor: lightenColor(primaryTypeColor, 0.2),
-            bandColor: primaryTypeColor,
-         };
-      }
-
-      return {
-         topColor: "#cccccc",
-         bottomColor: "#cccccc",
-         middleColor: "#ffffff",
-         bandColor: "#999999",
-      };
+      return getPokeballColors(types);
    }, [types]);
 
    /**

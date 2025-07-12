@@ -1,6 +1,7 @@
 import React, { memo } from "react";
 import LoadingState from "../States/LoadingState";
 import { View } from "react-native";
+import { useTheme } from "@/Theme";
 import { styles } from "./Styles";
 
 interface PokemonGridFooterProps {
@@ -17,10 +18,17 @@ const PokemonGridFooter: React.FC<PokemonGridFooterProps> = ({
    loadingMore,
    pokemonCount,
 }) => {
+   const { theme } = useTheme();
+
    if (!loadingMore || pokemonCount === 0) return null;
 
    return (
-      <View style={styles.footerContainer}>
+      <View
+         style={[
+            styles.footerContainer,
+            { backgroundColor: theme.background.primary },
+         ]}
+      >
          <LoadingState message="Loading more Pokémon..." />
       </View>
    );

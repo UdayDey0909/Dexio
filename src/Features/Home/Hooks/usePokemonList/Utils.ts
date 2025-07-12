@@ -4,9 +4,11 @@ import { PokemonCardData } from "../../Types";
 export const transformPokemonToCardData = (
    pokemon: Pokemon
 ): PokemonCardData => {
+   // Remove anything after a dash (including the dash) from the name
+   const displayName = pokemon.name.split("-")[0];
    return {
       id: pokemon.id,
-      name: pokemon.name.charAt(0).toUpperCase() + pokemon.name.slice(1),
+      name: displayName.charAt(0).toUpperCase() + displayName.slice(1),
       image: {
          uri:
             pokemon.sprites.other?.["official-artwork"]?.front_default ||

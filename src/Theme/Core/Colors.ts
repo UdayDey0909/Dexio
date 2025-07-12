@@ -28,7 +28,7 @@ export const baseColors = {
    },
    white: "#FFFFFF",
    black: "#000000",
-   slate: "#F1F5F9", // BG Color
+   slate: "#0F172A", // Dark background color
    lightGray: "#F3F4F6",
    mediumGray: "#9CA3AF",
    darkGray: "#4B5563",

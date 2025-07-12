@@ -30,14 +30,14 @@ const styles = StyleSheet.create({
       fontSize: 16,
       textAlign: "center",
       marginTop: 40,
-      fontFamily: Fonts.primaryMedium,
+      fontFamily: Fonts.primaryMedium, // Roboto-Medium
    },
    errorSubtext: {
       color: lightThemeColors.text.muted,
       fontSize: 14,
       textAlign: "center",
       marginTop: 10,
-      fontFamily: Fonts.primaryRegular,
+      fontFamily: Fonts.primaryRegular, // Roboto-Regular
    },
 });
 

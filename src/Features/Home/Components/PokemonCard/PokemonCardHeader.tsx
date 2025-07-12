@@ -14,9 +14,9 @@ const PokemonCardHeader: React.FC<PokemonCardHeaderProps> = ({ name, id }) => {
    return (
       <View style={styles.cardHeader}>
          <Text style={styles.name} numberOfLines={1} ellipsizeMode="tail">
-            {name}
+            {name.split("-")[0]}
          </Text>
-         <Text style={styles.pokedexNumber}>#{id}</Text>
+         <Text style={styles.pokedexNumber}>N°{id}</Text>
       </View>
    );
 };

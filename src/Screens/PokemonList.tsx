@@ -2,7 +2,7 @@
 import React, { useCallback } from "react";
 import PokemonGrid from "@/Features/Home/Components/PokemonGrid";
 import AppHeader from "@/Features/Home/Components/Common/AppHeader";
-import { lightThemeColors } from "@/Theme/Core/Variants";
+import { useTheme, ThemeToggle } from "@/Theme";
 import { PokemonCardData } from "@/Features/Home/Types";
 import { usePokemonList } from "@/Features/Home/Hooks/usePokemonList";
 import { useRouter } from "expo-router";
@@ -12,10 +12,12 @@ import {
    StatusBar,
    Platform,
    Alert,
+   View,
 } from "react-native";
 
 export const PokemonList: React.FC = () => {
    const router = useRouter();
+   const { theme, isDark } = useTheme();
    const {
       pokemonData,
       loading,
@@ -51,14 +53,21 @@ export const PokemonList: React.FC = () => {
    );
 
    return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView
+         style={[
+            styles.container,
+            { backgroundColor: theme.background.primary },
+         ]}
+      >
          <StatusBar
-            backgroundColor={lightThemeColors.background.primary}
-            barStyle="dark-content"
+            backgroundColor={theme.background.primary}
+            barStyle={isDark ? "light-content" : "dark-content"}
             translucent={Platform.OS === "ios"}
          />
 
-         <AppHeader title="PokéDEX" />
+         <View style={styles.headerContainer}>
+            <AppHeader />
+         </View>
 
          <PokemonGrid
             pokemonData={pokemonData}
@@ -78,6 +87,14 @@ export const PokemonList: React.FC = () => {
 const styles = StyleSheet.create({
    container: {
       flex: 1,
-      backgroundColor: lightThemeColors.background.primary,
+   },
+   headerContainer: {
+      position: "relative",
+   },
+   themeToggleContainer: {
+      position: "absolute",
+      top: 50,
+      right: 20,
+      zIndex: 10,
    },
 });

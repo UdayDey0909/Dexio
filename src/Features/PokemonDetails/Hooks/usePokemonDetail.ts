@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
+import { Image } from "react-native";
 import { PokemonData } from "@/Services/API/Pokemon/PokemonData";
 import { PokemonSpecies } from "@/Services/API/Pokemon/PokemonSpecies";
 import { PokemonStats } from "@/Services/API/Pokemon/PokemonStats";
@@ -64,6 +65,14 @@ export const usePokemonDetail = (pokemonId: string): UsePokemonDetailReturn => {
          const pokemon = (await pokemonDataService.getPokemon(
             pokemonId
          )) as ExtendedPokemon;
+
+         // Prefetch shiny sprite if available
+         const shinyUrl =
+            pokemon.sprites.other?.["official-artwork"]?.front_shiny ||
+            pokemon.sprites.front_shiny;
+         if (shinyUrl) {
+            Image.prefetch(shinyUrl);
+         }
 
          // Fetch Pokemon species data
          const species = await pokemonSpeciesService.getPokemonSpecies(

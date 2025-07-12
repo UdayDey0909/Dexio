@@ -44,7 +44,7 @@ const styles = StyleSheet.create({
    typeText: {
       color: "#fff",
       fontSize: 12,
-      fontFamily: Fonts.primaryMedium,
+      fontFamily: Fonts.primaryMedium, // Roboto-Medium
       includeFontPadding: false,
       textShadowColor: "rgba(0, 0, 0, 0.3)",
       textShadowOffset: { width: 1, height: 1 },

@@ -1,10 +1,8 @@
 import { StyleSheet } from "react-native";
-import { lightThemeColors } from "@/Theme/Core/Variants";
 
 export const styles = StyleSheet.create({
    container: {
       flex: 1,
-      backgroundColor: lightThemeColors.background.primary,
    },
    cardWrapper: {
       flex: 1,
@@ -20,6 +18,5 @@ export const styles = StyleSheet.create({
    footerContainer: {
       paddingVertical: 10,
       paddingHorizontal: 12,
-      backgroundColor: lightThemeColors.background.primary,
    },
 });

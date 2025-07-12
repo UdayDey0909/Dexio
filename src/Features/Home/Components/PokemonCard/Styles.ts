@@ -45,7 +45,7 @@ export const styles = StyleSheet.create({
    },
    name: {
       fontSize: 18,
-      fontFamily: Fonts.headingSemiBold,
+      fontFamily: Fonts.headingSemiBold, // Poppins-SemiBold
       color: baseColors.white,
       textShadowColor: "rgba(0, 0, 0, 0.75)",
       textShadowOffset: { width: 1, height: 1 },
@@ -55,7 +55,7 @@ export const styles = StyleSheet.create({
    },
    pokedexNumber: {
       fontSize: 16,
-      fontFamily: Fonts.primaryRegular,
+      fontFamily: Fonts.primaryMedium, // Roboto-Medium
       color: baseColors.white,
       textShadowColor: "rgba(0, 0, 0, 0.75)",
       textShadowOffset: { width: 0.7, height: 0.7 },
