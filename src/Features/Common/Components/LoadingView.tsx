@@ -9,11 +9,15 @@ import {
 } from "react-native";
 
 interface LoadingViewProps {
-   backgroundColor: string;
+   backgroundColor?: string;
+   message?: string;
+   color?: string;
 }
 
-export const LoadingView: React.FC<LoadingViewProps> = ({
-   backgroundColor,
+const LoadingView: React.FC<LoadingViewProps> = ({
+   backgroundColor = "#222",
+   message = "Loading...",
+   color = "#fff",
 }) => {
    return (
       <SafeAreaView style={[styles.container, { backgroundColor }]}>
@@ -22,8 +26,8 @@ export const LoadingView: React.FC<LoadingViewProps> = ({
             barStyle="light-content"
          />
          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color="#fff" />
-            <Text style={styles.loadingText}>Loading Pokémon...</Text>
+            <ActivityIndicator size="large" color={color} />
+            <Text style={[styles.loadingText, { color }]}>{message}</Text>
          </View>
       </SafeAreaView>
    );
@@ -39,8 +43,9 @@ const styles = StyleSheet.create({
       alignItems: "center",
    },
    loadingText: {
-      color: "#fff",
       fontSize: 16,
       marginTop: 10,
    },
 });
+
+export default LoadingView;

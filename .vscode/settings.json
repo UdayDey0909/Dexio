@@ -13,6 +13,7 @@
       "Matchups",
       "missingno",
       "MMKV",
+      "mult",
       "netinfo",
       "overworld",
       "pikachu",
@@ -32,6 +33,7 @@
       "Refetches",
       "retryable",
       "Subviews",
+      "VIEWBOX",
       "Wormadam"
    ]
 }

@@ -1,4 +1,5 @@
-import { useCallback, useRef } from "react";
+import { useCallback } from "react";
+import { useDebouncedCallback } from "@/Utils/useDebouncedCallback";
 import { PokemonListState } from "./Types";
 import { POKEMON_LIST_CONSTANTS } from "./Constants";
 
@@ -15,10 +16,8 @@ export const usePokemonActions = ({
    dispatch,
    isMountedRef,
 }: UsePokemonActionsParams) => {
-   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-   // Debounced load more with proper cleanup
-   const loadMore = useCallback(() => {
+   // Use the shared debounced callback hook for loadMore
+   const loadMore = useDebouncedCallback(() => {
       if (
          !state.hasMore ||
          state.loading ||
@@ -27,26 +26,10 @@ export const usePokemonActions = ({
       ) {
          return;
       }
-
-      // Clear existing timeout
-      if (timeoutRef.current) {
-         clearTimeout(timeoutRef.current);
+      if (isMountedRef.current) {
+         fetchPokemon(false, true);
       }
-
-      // Set new timeout
-      timeoutRef.current = setTimeout(() => {
-         if (isMountedRef.current) {
-            fetchPokemon(false, true);
-         }
-      }, POKEMON_LIST_CONSTANTS.LOAD_MORE_DEBOUNCE_MS);
-   }, [
-      state.hasMore,
-      state.loading,
-      state.refreshing,
-      state.loadingMore,
-      fetchPokemon,
-      isMountedRef,
-   ]);
+   }, POKEMON_LIST_CONSTANTS.LOAD_MORE_DEBOUNCE_MS);
 
    // Refresh function
    const onRefresh = useCallback(() => {
@@ -60,12 +43,8 @@ export const usePokemonActions = ({
       fetchPokemon(false, false);
    }, [fetchPokemon, dispatch]);
 
-   const cleanup = useCallback(() => {
-      // Clear any pending timeouts
-      if (timeoutRef.current) {
-         clearTimeout(timeoutRef.current);
-      }
-   }, []);
+   // No cleanup needed for debounced callback
+   const cleanup = useCallback(() => {}, []);
 
    return {
       loadMore,

@@ -7,6 +7,7 @@ import PokemonCardTypes from "./PokemonCardTypes";
 import { PokemonCardProps } from "../../Types";
 import { Pressable, View } from "react-native";
 import { styles } from "./Styles";
+import { useDelayedPress } from "@/Utils/useDelayedPress";
 
 const PokemonCard: React.FC<PokemonCardProps> = ({
    name,
@@ -37,19 +38,10 @@ const PokemonCard: React.FC<PokemonCardProps> = ({
       };
    }, [types]);
 
-   /*
-    * Use a ref to track the last press time for double-tap detection
-    * This prevents the need for state updates and re-renders on every press
-    * It allows us to handle double-tap detection efficiently.
-    */
-   const lastPressRef = useRef(0);
-   const handlePress = useCallback(() => {
-      const currentTime = Date.now();
-      if (currentTime - lastPressRef.current > TIMING.doublePressDelay) {
-         lastPressRef.current = currentTime;
-         onPress?.();
-      }
-   }, [onPress]);
+   // Use the reusable delayed press hook
+   const handlePress = useDelayedPress(() => {
+      onPress?.();
+   }, TIMING.doublePressDelay);
 
    /**
     * Memoize the card style to avoid unnecessary recalculations

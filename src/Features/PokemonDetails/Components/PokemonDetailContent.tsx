@@ -2,7 +2,7 @@ import React from "react";
 import { View, StyleSheet, SafeAreaView, Text } from "react-native";
 import { PokemonDetailTabs } from "./PokemonDetailTabs";
 import { PokemonDetailData } from "../Types/PokemonDetailTypes";
-import { usePokemonTypeColors } from "../Hooks/usePokemonDetail";
+import { getTypeColor } from "@/Theme/Utils/PokeBallBG";
 import { useTheme } from "@/Theme/ThemeContext";
 import { Fonts } from "@/Theme/Fonts";
 
@@ -19,7 +19,6 @@ export const PokemonDetailContent: React.FC<PokemonDetailContentProps> = ({
 }) => {
    const pokemon = pokemonData.pokemon;
    const types = pokemon?.types?.map((t) => t.type.name) || [];
-   const { getTypeColor } = usePokemonTypeColors();
    const typeColor = getTypeColor(types[0] || "normal");
    const { theme } = useTheme();
 

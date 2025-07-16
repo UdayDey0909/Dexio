@@ -33,4 +33,4 @@ const styles = StyleSheet.create({
    },
 });
 
-export default LoadingState;
+export { default } from "@/Features/Common/Components/LoadingView";

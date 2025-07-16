@@ -2,13 +2,14 @@ import React from "react";
 import { SafeAreaView, StatusBar, StyleSheet } from "react-native";
 import { PokemonDetailHeader } from "@/Features/PokemonDetails/Components/PokemonDetailHeader";
 import { PokemonDetailContent } from "@/Features/PokemonDetails/Components/PokemonDetailContent";
-import { LoadingView } from "@/Features/PokemonDetails/Components/LoadingView";
-import { ErrorView } from "@/Features/PokemonDetails/Components/ErrorView";
+import LoadingView from "@/Features/Common/Components/LoadingView";
+import ErrorView from "@/Features/Common/Components/ErrorView";
 import {
    usePokemonDetail,
    usePokemonTypeColors,
 } from "@/Features/PokemonDetails/Hooks/usePokemonDetail";
 import { usePokemonDetailState } from "@/Features/PokemonDetails/Hooks/usePokemonDetailState";
+import { getTypeColor } from "@/Theme/Utils/PokeBallBG";
 
 interface PokemonDetailScreenProps {
    pokemonId: string;
@@ -28,7 +29,6 @@ export const PokemonDetailScreen: React.FC<PokemonDetailScreenProps> = ({
       hasShinySprite,
    } = usePokemonDetail(pokemonId);
 
-   const { getTypeColor } = usePokemonTypeColors();
    const { useMetric, setUseMetric } = usePokemonDetailState();
 
    const backgroundColor = React.useMemo(() => {
@@ -39,7 +39,7 @@ export const PokemonDetailScreen: React.FC<PokemonDetailScreenProps> = ({
          return "#68A090";
       }
       return getTypeColor(pokemonData.pokemon.types[0].type.name);
-   }, [pokemonData.pokemon?.types, getTypeColor]);
+   }, [pokemonData.pokemon?.types]);
 
    if (loading) {
       return <LoadingView backgroundColor={backgroundColor} />;

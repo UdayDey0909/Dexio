@@ -1,6 +1,6 @@
 import React from "react";
 import { View, StyleSheet } from "react-native";
-import { AboutTab } from "./Tabs/AboutTab";
+import PokemonAboutSection from "./Tabs/AboutSection";
 import { PokemonDetailData } from "../Types/PokemonDetailTypes";
 
 interface PokemonDetailTabsProps {
@@ -18,7 +18,7 @@ export const PokemonDetailTabs: React.FC<PokemonDetailTabsProps> = ({
       <View style={styles.container}>
          {/* Tab Content - Only About Tab */}
          <View style={styles.tabContent}>
-            <AboutTab
+            <PokemonAboutSection
                pokemonData={pokemonData}
                useMetric={useMetric}
                onToggleMetric={onToggleMetric}

@@ -2,7 +2,7 @@ import React from "react";
 import { View, Text, StyleSheet, Image, TouchableOpacity } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { usePokemonTypeColors } from "../Hooks/usePokemonDetail";
+import { getTypeColor } from "@/Theme/Utils/PokeBallBG";
 import type { Pokemon } from "pokenode-ts";
 import Pokeball from "@/Assets/SVG/PokeBall";
 import { getPokeballColors } from "@/Theme/Utils/PokeBallBG";
@@ -27,7 +27,6 @@ export const PokemonDetailHeader: React.FC<PokemonDetailHeaderProps> = ({
    onToggleShiny,
 }) => {
    const router = useRouter();
-   const { getTypeColor: getTypeColorHook } = usePokemonTypeColors();
    const { theme, isDark } = useTheme();
 
    // Animated Pokéball - Continuous infinite rotation

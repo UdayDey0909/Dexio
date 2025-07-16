@@ -1,5 +1,5 @@
 import React, { memo, useMemo } from "react";
-import PokemonTypeChip from "../Common/PokemonTypeChip";
+import PokemonTypeChip from "@/Features/Common/Components/PokemonTypeChip";
 import { View } from "react-native";
 import { styles } from "./Styles";
 

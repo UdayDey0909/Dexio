@@ -9,6 +9,7 @@ import ErrorState from "../States/ErrorState";
 import EmptyState from "../States/EmptyState";
 import { PokemonCardData } from "../../Types";
 import { styles } from "./Styles";
+import { useDebouncedCallback } from "@/Utils/useDebouncedCallback";
 
 interface PokemonGridProps {
    pokemonData: PokemonCardData[];
@@ -39,7 +40,6 @@ const PokemonGrid: React.FC<PokemonGridProps> = ({
    onPokemonPress,
 }) => {
    const { theme } = useTheme();
-   const loadMoreCalledRef = useRef(false);
 
    /**
     * Callback to render each Pokémon card item in the grid.
@@ -86,13 +86,8 @@ const PokemonGrid: React.FC<PokemonGridProps> = ({
       [loadingMore, pokemonData.length]
    );
 
-   /**
-    * Callback to handle the end of the list being reached.
-    * It triggers loading more Pokémon if there are more available and not currently loading.
-    */
-   const handleEndReached = useCallback(() => {
-      if (loadMoreCalledRef.current) return;
-
+   // Use the reusable debounced callback hook for end reached
+   const handleEndReached = useDebouncedCallback(() => {
       if (
          hasMore &&
          !loading &&
@@ -100,27 +95,9 @@ const PokemonGrid: React.FC<PokemonGridProps> = ({
          !refreshing &&
          pokemonData.length > 0
       ) {
-         loadMoreCalledRef.current = true;
          onLoadMore();
-
-         setTimeout(() => {
-            loadMoreCalledRef.current = false;
-         }, 1000);
       }
-   }, [
-      hasMore,
-      loading,
-      loadingMore,
-      refreshing,
-      onLoadMore,
-      pokemonData.length,
-   ]);
-
-   React.useEffect(() => {
-      if (!loadingMore) {
-         loadMoreCalledRef.current = false;
-      }
-   }, [loadingMore]);
+   }, 1000);
 
    /**
     * Memoized refresh control to handle pull-to-refresh functionality.

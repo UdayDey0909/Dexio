@@ -10,20 +10,22 @@ import {
 import { useRouter } from "expo-router";
 
 interface ErrorViewProps {
-   backgroundColor: string;
-   error: string;
+   backgroundColor?: string;
+   error: string | Error;
    onRetry?: () => void;
    showGoBack?: boolean;
+   color?: string;
 }
 
-export const ErrorView: React.FC<ErrorViewProps> = ({
-   backgroundColor,
+const ErrorView: React.FC<ErrorViewProps> = ({
+   backgroundColor = "#222",
    error,
    onRetry,
    showGoBack = false,
+   color = "#fff",
 }) => {
    const router = useRouter();
-
+   const errorMsg = typeof error === "string" ? error : error.message;
    return (
       <SafeAreaView style={[styles.container, { backgroundColor }]}>
          <StatusBar
@@ -31,10 +33,10 @@ export const ErrorView: React.FC<ErrorViewProps> = ({
             barStyle="light-content"
          />
          <View style={styles.errorContainer}>
-            <Text style={styles.errorText}>{error}</Text>
+            <Text style={[styles.errorText, { color }]}>{errorMsg}</Text>
             {onRetry && (
                <TouchableOpacity style={styles.button} onPress={onRetry}>
-                  <Text style={styles.buttonText}>Retry</Text>
+                  <Text style={[styles.buttonText, { color }]}>Retry</Text>
                </TouchableOpacity>
             )}
             {showGoBack && (
@@ -42,7 +44,7 @@ export const ErrorView: React.FC<ErrorViewProps> = ({
                   style={styles.button}
                   onPress={() => router.back()}
                >
-                  <Text style={styles.buttonText}>Go Back</Text>
+                  <Text style={[styles.buttonText, { color }]}>Go Back</Text>
                </TouchableOpacity>
             )}
          </View>
@@ -61,7 +63,6 @@ const styles = StyleSheet.create({
       padding: 20,
    },
    errorText: {
-      color: "#fff",
       fontSize: 16,
       textAlign: "center",
       marginBottom: 20,
@@ -74,8 +75,9 @@ const styles = StyleSheet.create({
       marginTop: 10,
    },
    buttonText: {
-      color: "#fff",
       fontSize: 16,
       fontWeight: "bold",
    },
 });
+
+export default ErrorView;

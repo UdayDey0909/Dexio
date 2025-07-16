@@ -1,6 +1,6 @@
 import React, { memo } from "react";
 import { View, Text, StyleSheet } from "react-native";
-import { PokemonTypeIcon } from "@/Assets/SVG/PokemonTypeIcons";
+import PokemonTypeIcon from "@/Components/PokemonTypeIcon";
 import { getTypeColor, lightenColor } from "@/Theme/Utils/PokeBallBG";
 import { Fonts } from "@/Theme/Fonts";
 
