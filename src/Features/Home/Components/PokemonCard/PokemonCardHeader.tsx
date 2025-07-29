@@ -22,3 +22,4 @@ const PokemonCardHeader: React.FC<PokemonCardHeaderProps> = ({ name, id }) => {
 };
 
 export default memo(PokemonCardHeader);
+                                                                                                                                                   
