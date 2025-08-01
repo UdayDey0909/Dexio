@@ -1,44 +1,19 @@
 import React from "react";
-import { View, Text, StyleSheet } from "react-native";
-import { lightThemeColors } from "@/Theme/Core/Variants";
-import { Fonts } from "@/Theme/Fonts";
+import ErrorRetry from "@/Components/ErrorRetry";
 
 interface ErrorStateProps {
    error: Error;
+   onRetry?: () => void;
 }
 
-const ErrorState: React.FC<ErrorStateProps> = ({ error }) => {
+const ErrorState: React.FC<ErrorStateProps> = ({ error, onRetry }) => {
    return (
-      <View style={styles.container}>
-         <Text style={styles.errorText}>
-            Error loading Pokémon: {error.message}
-         </Text>
-         <Text style={styles.errorSubtext}>Pull down to refresh</Text>
-      </View>
+      <ErrorRetry
+         message={`Error loading Pokémon: ${error.message}`}
+         onRetry={onRetry || (() => {})}
+         showRetryButton={!!onRetry}
+      />
    );
 };
 
-const styles = StyleSheet.create({
-   container: {
-      flex: 1,
-      justifyContent: "center",
-      alignItems: "center",
-      paddingVertical: 40,
-   },
-   errorText: {
-      color: lightThemeColors.system.error,
-      fontSize: 16,
-      textAlign: "center",
-      marginTop: 40,
-      fontFamily: Fonts.primaryMedium, // Roboto-Medium
-   },
-   errorSubtext: {
-      color: lightThemeColors.text.muted,
-      fontSize: 14,
-      textAlign: "center",
-      marginTop: 10,
-      fontFamily: Fonts.primaryRegular, // Roboto-Regular
-   },
-});
-
-export { default } from "@/Features/Common/Components/ErrorView";
+export default ErrorState;

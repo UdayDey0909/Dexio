@@ -64,13 +64,15 @@ const PokemonGrid: React.FC<PokemonGridProps> = ({
     */
    const renderEmptyComponent = useCallback(() => {
       if (loading && pokemonData.length === 0) {
-         return <LoadingState message="Loading Pokémon..." />;
+         return (
+            <LoadingState message="Loading Pokémon..." showSkeleton={true} />
+         );
       }
       if (error) {
-         return <ErrorState error={new Error(error)} />;
+         return <ErrorState error={new Error(error)} onRetry={onRefresh} />;
       }
       return <EmptyState />;
-   }, [loading, pokemonData.length, error]);
+   }, [loading, pokemonData.length, error, onRefresh]);
 
    /**
     * Callback to render the footer component for the grid.

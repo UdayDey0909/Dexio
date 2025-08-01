@@ -1,6 +1,5 @@
 import React, { memo } from "react";
-import LoadingState from "../States/LoadingState";
-import { View } from "react-native";
+import { View, Text, ActivityIndicator } from "react-native";
 import { useTheme } from "@/Theme";
 import { styles } from "./Styles";
 
@@ -11,7 +10,7 @@ interface PokemonGridFooterProps {
 
 /**
  * Component to render the footer of the Pokémon grid.
- * It displays a loading state when more Pokémon are being loaded.
+ * It displays a compact loading state when more Pokémon are being loaded.
  * This is useful for infinite scrolling scenarios.
  */
 const PokemonGridFooter: React.FC<PokemonGridFooterProps> = ({
@@ -29,7 +28,12 @@ const PokemonGridFooter: React.FC<PokemonGridFooterProps> = ({
             { backgroundColor: theme.background.primary },
          ]}
       >
-         <LoadingState message="Loading more Pokémon..." />
+         <View style={styles.footerContent}>
+            <ActivityIndicator size="small" color={theme.accent} />
+            <Text style={[styles.footerText, { color: theme.text.secondary }]}>
+               Loading more Pokémon...
+            </Text>
+         </View>
       </View>
    );
 };

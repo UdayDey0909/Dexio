@@ -16,7 +16,18 @@ export const styles = StyleSheet.create({
       paddingBottom: 20,
    },
    footerContainer: {
-      paddingVertical: 10,
-      paddingHorizontal: 12,
+      paddingVertical: 16,
+      paddingHorizontal: 20,
+   },
+   footerContent: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 12,
+   },
+   footerText: {
+      marginTop: 16,
+      fontSize: 14,
+      fontFamily: "Roboto-Regular",
    },
 });
