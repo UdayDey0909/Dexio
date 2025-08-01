@@ -46,9 +46,8 @@ export const usePokemonDetails = (
             // Get additional generation info
             let generationInfo;
             try {
-               generationInfo = await pokemonService.getPokemonGenerationInfo(
-                  name
-               );
+               generationInfo =
+                  await pokemonService.species.getPokemonGenerationInfo(name);
             } catch (error) {
                console.warn(
                   `Failed to get generation info for ${name}:`,

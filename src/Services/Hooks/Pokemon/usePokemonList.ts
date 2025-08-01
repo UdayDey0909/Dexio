@@ -45,7 +45,7 @@ export const usePokemonList = (
          // Limit batch size for performance (max 6 for mobile)
          const pokemonNames = pokemonListResponse.results
             .slice(0, Math.min(6, pokemonListResponse.results.length))
-            .map((pokemon) => pokemon.name);
+            .map((pokemon: { name: string }) => pokemon.name);
 
          // Batch fetch actual Pokemon data
          const pokemonList = await pokemonService.batchGetPokemon(pokemonNames);

@@ -26,6 +26,10 @@ export class PokemonService {
       return this.core.getPokemon(identifier);
    }
 
+   async getPokemonList(offset: number = 0, limit: number = 20) {
+      return this.data.getPokemonList(offset, limit);
+   }
+
    async getPokemonStats(pokemonName: string) {
       return this.stats.getPokemonStats(pokemonName);
    }
@@ -36,6 +40,27 @@ export class PokemonService {
 
    async searchPokemon(query: string, limit?: number) {
       return this.data.searchPokemonByPartialName(query, limit);
+   }
+
+   async searchPokemonByPartialName(query: string, limit?: number) {
+      return this.data.searchPokemonByPartialName(query, limit);
+   }
+
+   async getPokemonSpecies(id: string | number) {
+      return this.species.getPokemonSpecies(id);
+   }
+
+   async batchGetPokemon(pokemonNames: string[]) {
+      const results = [];
+      for (const name of pokemonNames) {
+         try {
+            const pokemon = await this.getPokemon(name);
+            results.push(pokemon);
+         } catch (error) {
+            console.warn(`Failed to get Pokemon ${name}:`, error);
+         }
+      }
+      return results;
    }
 
    // Health check that works across all modules

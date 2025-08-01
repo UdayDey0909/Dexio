@@ -62,19 +62,19 @@ export class PokeAPIService {
    public utility = utilityService;
 
    clearAllCaches() {
-      this.pokemon.clearCache();
-      this.abilities.clearCache();
-      this.types.clearCache();
-      this.moves.clearCache();
-      this.evolution.clearCache();
-      this.items.clearCache();
-      this.berries.clearCache();
-      this.locations.clearCache();
-      this.contests.clearCache();
-      this.encounters.clearCache();
-      this.games.clearCache();
-      this.machines.clearCache();
-      this.utility.clearCache();
+      this.pokemon.cleanup();
+      this.abilities.cleanup();
+      this.types.cleanup();
+      this.moves.cleanup();
+      this.evolution.cleanup();
+      this.items.cleanup();
+      this.berries.cleanup();
+      this.locations.cleanup();
+      this.contests.cleanup();
+      this.encounters.cleanup();
+      this.games.cleanup();
+      this.machines.cleanup();
+      this.utility.cleanup();
    }
 
    // Convenience method to get all services

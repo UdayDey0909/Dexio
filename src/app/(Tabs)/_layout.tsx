@@ -8,7 +8,7 @@ export default function TabLayout() {
 
    return (
       <Tabs
-         initialRouteName="Home"
+         initialRouteName="index"
          screenOptions={{
             headerShown: false,
             tabBarActiveTintColor: theme.accent,
@@ -28,7 +28,7 @@ export default function TabLayout() {
          }}
       >
          <Tabs.Screen
-            name="Home"
+            name="index"
             options={{
                title: "Home",
                tabBarIcon: ({ color }) => (

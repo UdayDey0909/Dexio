@@ -4,10 +4,7 @@ import { PokemonDetailHeader } from "@/Features/PokemonDetails/Components/Pokemo
 import { PokemonDetailContent } from "@/Features/PokemonDetails/Components/PokemonDetailContent";
 import LoadingView from "@/Features/Common/Components/LoadingView";
 import ErrorView from "@/Features/Common/Components/ErrorView";
-import {
-   usePokemonDetail,
-   usePokemonTypeColors,
-} from "@/Features/PokemonDetails/Hooks/usePokemonDetail";
+import { usePokemonDetail } from "@/Features/PokemonDetails/Hooks/usePokemonDetail";
 import { usePokemonDetailState } from "@/Features/PokemonDetails/Hooks/usePokemonDetailState";
 import { getTypeColor } from "@/Theme/Utils/PokeBallBG";
 

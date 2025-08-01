@@ -1,0 +1,44 @@
+{
+   "project": {
+      "name": "Dexio",
+      "version": "1.0.0",
+      "package": "com.dexio.app"
+   },
+   "build": {
+      "development": {
+         "distribution": "internal",
+         "android": {
+            "buildType": "apk"
+         }
+      },
+      "preview": {
+         "distribution": "internal",
+         "android": {
+            "buildType": "apk"
+         }
+      },
+      "production": {
+         "distribution": "store",
+         "android": {
+            "buildType": "aab"
+         }
+      }
+   },
+   "environments": {
+      "development": {
+         "API_BASE_URL": "https://pokeapi.co/api/v2",
+         "ENABLE_LOGGING": true,
+         "ENABLE_DEBUG": true
+      },
+      "preview": {
+         "API_BASE_URL": "https://pokeapi.co/api/v2",
+         "ENABLE_LOGGING": true,
+         "ENABLE_DEBUG": false
+      },
+      "production": {
+         "API_BASE_URL": "https://pokeapi.co/api/v2",
+         "ENABLE_LOGGING": false,
+         "ENABLE_DEBUG": false
+      }
+   }
+}

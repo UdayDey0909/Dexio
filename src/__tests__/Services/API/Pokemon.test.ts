@@ -1,4 +1,4 @@
-/* // __tests__/Services/API/Pokemon.test.ts
+/* __tests__/Services/API/Pokemon.test.ts - Temporarily disabled for build
 import { PokemonService } from "@/Services/API/Pokemon";
 import { MainClient } from "pokenode-ts";
 import type { Pokemon, PokemonSpecies, NamedAPIResource } from "pokenode-ts";
@@ -669,4 +669,4 @@ describe("PokemonService", () => {
       });
    });
 });
- */
+*/
