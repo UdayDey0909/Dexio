@@ -36,10 +36,10 @@
 ## 🖼️ Screenshots
 
 <div align="center">
-<!--   <img src="src/Assets/Previews/HomeScreen.png" alt="Home Screen" width="400"/> -->
   <img src="src/Assets//Previews/HomeGIF.gif" alt="Pokemon Details" width="400"/>
+<!--   <img src="src/Assets/Previews/HomeScreen.png" alt="Home Screen" width="400"/>
 <img src="src/Assets/Images/PokeBallPH.png" alt="Search Screen" width="200"/>
- <!--    <img src="src/Assets/Images/PokeBallPH.png" alt="Profile Screen" width="200"/> -->
+<img src="src/Assets/Images/PokeBallPH.png" alt="Profile Screen" width="200"/> -->
 </div>
 
 ## 🚀 Quick Start
