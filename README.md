@@ -38,10 +38,10 @@
 ## 🖼️ Screenshots
 
 <div align="center">
-  <img src="src/Assets/Images/PokeBallPH.png" alt="Home Screen" width="200"/>
-  <img src="src/Assets/Images/PokeBallPH.png" alt="Pokemon Details" width="200"/>
-  <img src="src/Assets/Images/PokeBallPH.png" alt="Search Screen" width="200"/>
-  <img src="src/Assets/Images/PokeBallPH.png" alt="Profile Screen" width="200"/>
+  <img src="src/Assets/Previews/HomeScreen.png" alt="Home Screen" width="200"/>
+  <img src="src/Assets//Previews/DetailScreen.jpg" alt="Pokemon Details" width="200"/>
+<!--   <img src="src/Assets/Images/PokeBallPH.png" alt="Search Screen" width="200"/>
+  <img src="src/Assets/Images/PokeBallPH.png" alt="Profile Screen" width="200"/> -->
 </div>
 
 ## 🚀 Quick Start
@@ -91,7 +91,7 @@ yarn web      # Web browser
 
 ## 🤝 Contributing
 
-We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.md) for details.
+We welcome contributions! Please see our [Contributing Guidelines](Docs/CONTRIBUTING.md) for details.
 
 - [🐛 Report Bug](https://github.com/UdayDey0909/Dexio/issues)
 - [✨ Request Feature](https://github.com/UdayDey0909/Dexio/issues)
