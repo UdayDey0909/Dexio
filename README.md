@@ -4,9 +4,6 @@
   <img src="src/Assets/Previews/icon.png" alt="Dexio Logo" width="300"/>
 </p>
 
-> A modern, cross-platform Pokémon encyclopedia app built with React Native and Expo, featuring comprehensive Pokémon data, beautiful UI, and a modular, scalable architecture.
-
----
 
 <!-- Tech Stack Badges -->
 [![React Native](https://img.shields.io/badge/React%20Native-0.79.5-61DAFB?logo=react&logoColor=white)](https://reactnative.dev/)
@@ -23,13 +20,14 @@
 [![Version](https://img.shields.io/badge/Version-1.0.0-orange?logo=semantic-release&logoColor=white)]()
 
 ---
+> A modern, cross-platform Pokémon encyclopedia app built with React Native and Expo, featuring comprehensive Pokémon data, beautiful UI, and a modular, scalable architecture.
 
 ## ✨ Key Features
 
 - **📱 Cross-Platform**: Built with React Native & Expo for iOS, Android, and Web
 - **🎨 Modern UI/UX**: Beautiful, responsive design with light/dark themes and Pokémon type colors
-- **⚡ High Performance**: Optimized with FlashList, React Query, and intelligent caching
-- **📊 Comprehensive Data**: 898+ Pokémon with detailed stats, abilities, evolutions, and type effectiveness
+- **⚡ High Performance**: Optimized with FlashList, optimized image loading, and intelligent caching
+- **📊 Comprehensive Data**: 1000+ Pokémon with detailed stats, abilities, evolutions, and type effectiveness
 - **🎭 Smooth Animations**: Skeleton loaders, shimmer effects, and interactive elements
 - **🛡️ Robust Error Handling**: Graceful error states with inline retry functionality
 - **🧩 Modular Architecture**: Feature-based structure with clear separation of concerns
@@ -38,10 +36,10 @@
 ## 🖼️ Screenshots
 
 <div align="center">
-  <img src="src/Assets/Previews/HomeScreen.png" alt="Home Screen" width="200"/>
-  <img src="src/Assets//Previews/DetailScreen.jpg" alt="Pokemon Details" width="200"/>
-<!--   <img src="src/Assets/Images/PokeBallPH.png" alt="Search Screen" width="200"/>
-  <img src="src/Assets/Images/PokeBallPH.png" alt="Profile Screen" width="200"/> -->
+<!--   <img src="src/Assets/Previews/HomeScreen.png" alt="Home Screen" width="400"/> -->
+  <img src="src/Assets//Previews/HomeGIF.gif" alt="Pokemon Details" width="400"/>
+<img src="src/Assets/Images/PokeBallPH.png" alt="Search Screen" width="200"/>
+ <!--    <img src="src/Assets/Images/PokeBallPH.png" alt="Profile Screen" width="200"/> -->
 </div>
 
 ## 🚀 Quick Start
