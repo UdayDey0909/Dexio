@@ -1,81 +1,71 @@
 {
-  "expo": {
-    "name": "Dexio",
-    "slug": "dexio",
-    "version": "1.0.0",
-    "orientation": "portrait",
-    "icon": "./src/Assets/Previews/icon.png",
-    "scheme": "dexio",
-    "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
-    "description": "A comprehensive Pokemon encyclopedia app with detailed information about Pokemon, abilities, moves, and more.",
-    "privacy": "public",
-    "platforms": [
-      "ios",
-      "android",
-      "web"
-    ],
-    "splash": {
-      "image": "./src/Assets/Previews/splash-icon.jpg",
-      "resizeMode": "cover",
-      "backgroundColor": "#0A0E2E"
-    },
-    "ios": {
-      "supportsTablet": true,
-      "bundleIdentifier": "com.dexio.app",
-      "buildNumber": "1",
-      "infoPlist": {
-        "UIBackgroundModes": [
-          "fetch"
-        ],
-        "NSAppTransportSecurity": {
-          "NSAllowsArbitraryLoads": true
-        }
-      }
-    },
-    "android": {
-      "package": "com.dexio.app",
-      "versionCode": 1,
-      "adaptiveIcon": {
-        "foregroundImage": "./src/Assets/Previews/icon.png",
-        "backgroundColor": "#4A90E2"
+   "expo": {
+      "name": "Dexio",
+      "slug": "dexio",
+      "version": "1.0.0",
+      "runtimeVersion": { "policy": "appVersion" },
+      "orientation": "portrait",
+      "icon": "./src/Assets/Previews/icon.png",
+      "scheme": "dexio",
+      "userInterfaceStyle": "automatic",
+      "newArchEnabled": true,
+      "description": "A comprehensive Pokemon encyclopedia app with detailed information about Pokemon, abilities, moves, and more.",
+      "privacy": "public",
+      "platforms": ["ios", "android", "web"],
+      "splash": {
+         "image": "./src/Assets/Previews/splash-icon.jpg",
+         "resizeMode": "cover",
+         "backgroundColor": "#0A0E2E"
       },
-      "edgeToEdgeEnabled": true,
-      "permissions": [
-        "INTERNET",
-        "ACCESS_NETWORK_STATE"
-      ],
-      "allowBackup": true,
-      "softwareKeyboardLayoutMode": "pan"
-    },
-    "web": {
-      "bundler": "metro",
-      "output": "static",
-      "favicon": "./src/Assets/Previews/icon.png",
-      "name": "Dexio - Pokemon Encyclopedia",
-      "shortName": "Dexio",
-      "description": "Explore the world of Pokemon with detailed information, stats, and more.",
-      "lang": "en",
-      "dir": "ltr",
-      "display": "standalone",
-      "startUrl": "/",
-      "scope": "/",
-      "themeColor": "#4A90E2",
-      "backgroundColor": "#4A90E2"
-    },
-    "plugins": [
-      "expo-router"
-    ],
-    "experiments": {
-      "typedRoutes": true
-    },
-    "extra": {
-      "router": {
-        "origin": false
+      "ios": {
+         "supportsTablet": true,
+         "bundleIdentifier": "com.dexio.app",
+         "buildNumber": "1",
+         "infoPlist": {
+            "UIBackgroundModes": ["fetch"],
+            "NSAppTransportSecurity": {
+               "NSAllowsArbitraryLoads": true
+            }
+         }
       },
-      "eas": {
-        "projectId": "bcb5a7a4-3bb7-4550-a116-21c5f48116f9"
+      "android": {
+         "package": "com.dexio.app",
+         "versionCode": 1,
+         "adaptiveIcon": {
+            "foregroundImage": "./src/Assets/Previews/icon.png",
+            "backgroundColor": "#4A90E2"
+         },
+         "edgeToEdgeEnabled": true,
+         "permissions": ["INTERNET", "ACCESS_NETWORK_STATE"],
+         "allowBackup": true,
+         "softwareKeyboardLayoutMode": "pan"
+      },
+      "web": {
+         "bundler": "metro",
+         "output": "static",
+         "favicon": "./src/Assets/Previews/icon.png",
+         "name": "Dexio - Pokemon Encyclopedia",
+         "shortName": "Dexio",
+         "description": "Explore the world of Pokemon with detailed information, stats, and more.",
+         "lang": "en",
+         "dir": "ltr",
+         "display": "standalone",
+         "startUrl": "/",
+         "scope": "/",
+         "themeColor": "#4A90E2",
+         "backgroundColor": "#4A90E2"
+      },
+      "plugins": ["expo-router"],
+      "experiments": {
+         "typedRoutes": true
+      },
+      "extra": {
+         "router": {
+            "origin": false
+         },
+         "eas": {
+            "projectId": "bcb5a7a4-3bb7-4550-a116-21c5f48116f9"
+         }
       }
-    }
-  }
+   }
 }
