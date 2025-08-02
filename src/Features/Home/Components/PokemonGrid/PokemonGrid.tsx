@@ -99,7 +99,7 @@ const PokemonGrid: React.FC<PokemonGridProps> = ({
       ) {
          onLoadMore();
       }
-   }, 1000);
+   }, 300);
 
    /**
     * Memoized refresh control to handle pull-to-refresh functionality.
@@ -126,15 +126,18 @@ const PokemonGrid: React.FC<PokemonGridProps> = ({
       () => ({
          numColumns: 2,
          estimatedItemSize: 150,
-         renderAheadOffset: 150,
+         renderAheadOffset: 200,
          removeClippedSubviews: true,
          scrollEventThrottle: 16,
          decelerationRate: "normal" as const,
          recycleItems: true,
-         onEndReachedThreshold: 0.5,
+         onEndReachedThreshold: 0.1,
          showsVerticalScrollIndicator: false,
          bounces: true,
          alwaysBounceVertical: true,
+         maintainVisibleContentPosition: {
+            minIndexForVisible: 0,
+         },
       }),
       []
    );

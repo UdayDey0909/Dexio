@@ -19,7 +19,7 @@ const PokemonGridFooter: React.FC<PokemonGridFooterProps> = ({
 }) => {
    const { theme } = useTheme();
 
-   if (!loadingMore || pokemonCount === 0) return null;
+   if (!loadingMore) return null;
 
    return (
       <View

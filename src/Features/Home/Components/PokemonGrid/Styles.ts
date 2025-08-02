@@ -16,8 +16,9 @@ export const styles = StyleSheet.create({
       paddingBottom: 20,
    },
    footerContainer: {
-      paddingVertical: 16,
+      paddingVertical: 20,
       paddingHorizontal: 20,
+      minHeight: 60,
    },
    footerContent: {
       flexDirection: "row",
@@ -26,8 +27,8 @@ export const styles = StyleSheet.create({
       gap: 12,
    },
    footerText: {
-      marginTop: 16,
       fontSize: 14,
       fontFamily: "Roboto-Regular",
+      marginLeft: 8,
    },
 });
